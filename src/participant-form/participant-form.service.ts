@@ -14,6 +14,7 @@ import { CompanyDocument } from '@/company/schemas/company.schema';
 import { calculateRequiredFieldsCount } from '@/utils/req-field.util';
 import {
   BadRequestException,
+  ConflictException,
   forwardRef,
   Inject,
   Injectable,
@@ -52,7 +53,7 @@ export class ParticipantFormService {
 
   async createParticipantFormFromCsv(
     companyParticipantData: any,
-    missingFields: any,
+    missingFields?: any,
   ): TRCreateParticipantByCSV {
     const isApplicant = companyParticipantData.isApplicant;
 
@@ -81,14 +82,16 @@ export class ParticipantFormService {
 
     await participant.save();
 
-    if (!missingFields[isApplicant ? 'applicants' : 'owners']) {
-      missingFields[isApplicant ? 'applicants' : 'owners'] = [
-        await this.getParticipantFormMissingFields(participant, isApplicant),
-      ];
-    } else {
-      missingFields[isApplicant ? 'applicants' : 'owners'].push(
-        await this.getParticipantFormMissingFields(participant, isApplicant),
-      );
+    if (missingFields) {
+      if (!missingFields[isApplicant ? 'applicants' : 'owners']) {
+        missingFields[isApplicant ? 'applicants' : 'owners'] = [
+          await this.getParticipantFormMissingFields(participant, isApplicant),
+        ];
+      } else {
+        missingFields[isApplicant ? 'applicants' : 'owners'].push(
+          await this.getParticipantFormMissingFields(participant, isApplicant),
+        );
+      }
     }
 
     return [isApplicant, participant.id as string, requiredFieldsCount];
@@ -250,6 +253,7 @@ export class ParticipantFormService {
     isApplicant: boolean,
     user: IRequestUser,
   ) {
+    // Check user permissions
     await this.companyService.checkUserCompanyPermission(
       user,
       companyId,
@@ -257,30 +261,67 @@ export class ParticipantFormService {
     );
 
     const company = await this.companyService.getCompanyById(companyId);
-    const createdParticipant = isApplicant
-      ? await this.applicantFormModel.create({
-          ...payload,
+    const { docType, docNumber } = payload?.identificationDetails;
+
+    const existingParticipant = isApplicant
+      ? await this.applicantFormModel.findOne({
+          'identificationDetails.docType': docType,
+          'identificationDetails.docNumber': docNumber,
         })
-      : await this.ownerFormModel.create({ ...payload });
+      : await this.ownerFormModel.findOne({
+          'identificationDetails.docType': docType,
+          'identificationDetails.docNumber': docNumber,
+        });
 
-    company.forms[`${isApplicant ? 'applicants' : 'owners'}`].push(
-      createdParticipant['id'],
-    );
+    if (existingParticipant) {
+      const isCompanyParticipant = company.forms[
+        isApplicant ? 'applicants' : 'owners'
+      ].includes(existingParticipant.id.toString());
+      if (isCompanyParticipant) {
+        Object.keys(payload).forEach((key) => {
+          existingParticipant[key] = {
+            ...existingParticipant[key],
+            ...payload[key],
+          };
+        });
 
-    const answerCount =
-      createdParticipant.finCENID && createdParticipant.finCENID.finCENID
+        existingParticipant.answerCount = await calculateRequiredFieldsCount(
+          existingParticipant,
+          isApplicant ? requiredApplicantFields : requiredOwnerFields,
+        );
+
+        await existingParticipant.save();
+      } else {
+        company.forms[isApplicant ? 'applicants' : 'owners'].push(
+          existingParticipant.id.toString(),
+        );
+        await company.save();
+      }
+    } else {
+      // Create a new participant and associate with the company
+      const newParticipant = isApplicant
+        ? await this.applicantFormModel.create(payload)
+        : await this.ownerFormModel.create(payload);
+
+      company.forms[isApplicant ? 'applicants' : 'owners'].push(
+        newParticipant.id.toString(),
+      );
+
+      // Calculate initial answer count
+      newParticipant.answerCount = newParticipant.finCENID?.finCENID
         ? isApplicant
           ? requiredApplicantFields.length
           : requiredOwnerFields.length
         : await calculateRequiredFieldsCount(
-            createdParticipant,
+            newParticipant,
             isApplicant ? requiredApplicantFields : requiredOwnerFields,
           );
 
-    createdParticipant.answerCount = answerCount;
+      await newParticipant.save();
+      await company.save();
+    }
 
-    await createdParticipant.save();
-    await company.save();
+    await this.companyService.changeCompanyCounts(companyId);
   }
 
   async getParticipantFormById(
@@ -356,6 +397,8 @@ export class ParticipantFormService {
     user: any,
     isApplicant: boolean,
   ) {
+
+
     await this.companyService.checkUserCompanyPermission(
       user,
       participantId,
@@ -393,12 +436,42 @@ export class ParticipantFormService {
     const { docNum, docType } = payload;
     const company = await this.companyService.getCompanyById(companyId);
     const docImgName = await this.azureService.uploadImage(docImg);
+    const participantIsExist = isApplicant
+      ? await this.applicantFormModel.findOne({
+          ['identificationDetails.docNumber']: docNum,
+          ['identificationDetails.docType']: docType,
+        })
+      : await this.ownerFormModel.findOne({
+          ['identificationDetails.docNumber']: docNum,
+          ['identificationDetails.docType']: docType,
+        });
+
+    if (participantIsExist) {
+      if (
+        company.forms[isApplicant ? 'applicants' : 'owners'].includes(
+          participantIsExist['id'],
+        )
+      ) {
+        throw new ConflictException('Current Participant is already exist');
+      }
+    }
+
     const createdParticipant = isApplicant
       ? await this.applicantFormModel.create({
-          identificationDetails: { docNum, docType, docImg: docImgName },
+          identificationDetails: {
+            docNumber: docNum,
+            docType,
+            docImg: docImgName,
+          },
+          answerCount: 3,
         })
       : await this.ownerFormModel.create({
-          identificationDetails: { docNum, docType, docImg: docImgName },
+          identificationDetails: {
+            docNumber: docNum,
+            docType,
+            docImg: docImgName,
+          },
+          answerCount: 3,
         });
 
     company.forms[`${isApplicant ? 'applicants' : 'owners'}`].push(
@@ -406,10 +479,12 @@ export class ParticipantFormService {
     );
 
     await company.save();
+    await this.companyService.changeCompanyCounts(companyId);
 
     return {
       message: participantFormResponseMsgs.created,
       participantId: createdParticipant['id'],
+      docImg: docImgName,
     };
   }
 

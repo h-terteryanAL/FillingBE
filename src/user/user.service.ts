@@ -48,7 +48,6 @@ export class UserService {
   }
 
   async getUserByTokenAndId(userId: string, refreshToken: string) {
-    console.log(refreshToken)
     const user = await this.userModel.findOne({ _id: userId, refreshToken });
 
     return user;

@@ -90,7 +90,6 @@ export class CompanyService {
         .on('error', reject);
     });
 
-
     const allErrors = [];
     const allReasons = [];
     const allMissingFields = [];
@@ -630,14 +629,47 @@ export class CompanyService {
   }
 
   async submitCompanyById(companyId: string) {
-    const company = await this.companyModel.findById(companyId);
-
+    const company = await this.companyModel.findById(companyId).populate({
+      path: 'forms.applicants forms.owners forms.company',
+    });
     if (!company) {
       throw new NotFoundException(companyResponseMsgs.companyNotFound);
     }
 
     if (company.reqFieldsCount !== company.answersCount) {
       throw new BadRequestException(companyResponseMsgs.BOIRfieldsMissing);
+    }
+
+    const isAllVerified = (data: any[]) => {
+      return data.every((item) => {
+        return Object.keys(item).some((key) => {
+          const field = item[key];
+          return (
+            typeof field === 'object' &&
+            field !== null &&
+            typeof field.isVerified === 'boolean' &&
+            field.isVerified
+          );
+        });
+      });
+    };
+
+    const allApplicantsVerified = isAllVerified(company.forms.applicants);
+    const allOwnersVerified = isAllVerified(company.forms.owners);
+
+    const isCompanyVerified = Object.keys(company.forms.company).every(
+      (key) => {
+        const field = company.forms.company[key];
+        return (
+          typeof field === 'object' &&
+          field !== null &&
+          typeof field.isVerified === 'boolean' &&
+          field.isVerified
+        );
+      },
+    );
+    if (!allApplicantsVerified || !allOwnersVerified || !isCompanyVerified) {
+      throw new BadRequestException(companyResponseMsgs.BOIRNotAllVerified);
     }
 
     company.isSubmitted = true;
@@ -927,6 +959,31 @@ export class CompanyService {
     }
   }
 
+  async changeCompanyExistingApplicantData(
+    isExistingCompany: boolean,
+    isForeignPooled: boolean,
+    companyId: string,
+  ) {
+    const company = await this.companyModel.findById(companyId);
+    if (isExistingCompany) {
+      company.isExistingCompany = isExistingCompany;
+    }
+
+    if (company.isExistingCompany || isForeignPooled) {
+      const companyApplicants: any = company.forms.applicants;
+      if (companyApplicants.length) {
+        companyApplicants.forEach(async (applicantId: string) => {
+          await this.participantFormService.deleteParticipantFormById(
+            applicantId,
+            true,
+          );
+        });
+      }
+      company.forms.applicants.length = 0;
+    }
+
+    await company.save();
+  }
   // need some changes after admin part creating
   // async createNewCompany(payload: any) {
   //   const existCompanyForm =

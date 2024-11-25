@@ -48,7 +48,6 @@ export class MailService {
         path.resolve(),
         '/src/mail/templates/oneTimePass.hbs',
       );
-      console.log(this.link);
 
       const verificationTime = `${userVerificationTime[0]} ${userVerificationTime[1]}`;
       const template = fs.readFileSync(templatePath, 'utf-8');

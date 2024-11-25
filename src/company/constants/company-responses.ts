@@ -17,7 +17,8 @@ type CompanyResponseMsgKeys =
   | 'companiesNotSubmitted'
   | 'BOIRisSubmitted'
   | 'companiesDataRetrieved'
-  | 'companyDataRetrieved';
+  | 'companyDataRetrieved'
+  | 'BOIRNotAllVerified'
 
 export const companyResponseMsgs: Record<CompanyResponseMsgKeys, string> = {
   csvUploadSuccessful: 'Data is successfully saved',
@@ -35,4 +36,5 @@ export const companyResponseMsgs: Record<CompanyResponseMsgKeys, string> = {
   BOIRfieldsMissing: 'Company BOIR is not full',
   companiesNotSubmitted: 'Current companies is not submitted',
   BOIRisSubmitted: 'Company BOIR is submitted',
+  BOIRNotAllVerified: 'Some forms contain fields that are not verified.'
 };

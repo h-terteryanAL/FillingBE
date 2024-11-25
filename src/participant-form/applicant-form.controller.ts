@@ -189,7 +189,7 @@ export class ApplicantFormController {
     );
   }
 
-  @Post('uploadApplImg/:companyId')
+  @Post('uploadDocImg/:companyId')
   @UseInterceptors(FileInterceptor('docImg'))
   @ApiConsumes('multipart/form-data')
   @ApiBody({

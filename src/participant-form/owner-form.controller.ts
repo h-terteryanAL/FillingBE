@@ -155,7 +155,7 @@ export class OwnerFormController {
     );
   }
 
-  @Post('uploadOwnImg/:companyId')
+  @Post('uploadDocImg/:companyId')
   @UseInterceptors(FileInterceptor('docImg'))
   @ApiConsumes('multipart/form-data')
   @ApiBody({

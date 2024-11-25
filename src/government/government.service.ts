@@ -53,7 +53,6 @@ export class GovernmentService {
           const companyData = (await this.companyService.getFilteredData(
             companyId,
           )) as any;
-          console.log(companyData);
           const processId = await this.getProcessId(companyId);
 
           if (companyData?.forms.applicants.length) {
@@ -77,7 +76,6 @@ export class GovernmentService {
           //     console.error(err);
           //   },
           // );
-          console.log(processId);
           const response: AxiosResponse = await firstValueFrom(
             this.httpService.post(
               `${this.sandboxURL}/upload/BOIR/${processId}/${companyId}.xml`,
@@ -89,8 +87,7 @@ export class GovernmentService {
                 },
               },
             ),
-          );
-          console.log(response.data);
+          )
           return response.data;
         } catch (error) {
           this.logger.error(
@@ -106,14 +103,12 @@ export class GovernmentService {
     await Promise.all(
       formData.map(async (applicant) => {
         if (applicant.identificationDetails.docImg) {
-          console.log(applicant.identificationDetails.docImg);
           const applicantImageData = await this.azureService.readStream(
             applicant.identificationDetails.docImg,
           );
           const binaryImageData = (
             await this.streamToBinary(applicantImageData)
           ).toString('base64');
-          console.log(binaryImageData, 'image data');
           const URIName = encodeURI(applicant.identificationDetails.docImg);
           const response: AxiosResponse = await firstValueFrom(
             this.httpService.post(
@@ -127,7 +122,6 @@ export class GovernmentService {
               },
             ),
           );
-          console.log(response);
         }
       }),
     );
@@ -202,7 +196,6 @@ export class GovernmentService {
       const URIName = encodeURI(file.originalname); // URL encode the file name
       const processId = await this.getProcessId(companyId);
       const fileData = file.buffer.toString('base64');
-      console.log(processId);
       const response: AxiosResponse = await firstValueFrom(
         this.httpService.post(
           `${this.sandboxURL}/attachments/${processId}/${URIName}`,
@@ -224,7 +217,6 @@ export class GovernmentService {
 
   async checkGovernmentStatus(companyId: string) {
     const processId = await this.getProcessId(companyId);
-    console.log(processId, this.sandboxURL);
     try {
       const response: AxiosResponse = await firstValueFrom(
         this.httpService.get(`${this.sandboxURL}/transcript/${processId}`, {
