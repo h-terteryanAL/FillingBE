@@ -237,10 +237,10 @@ export class ApplicantFormController {
     );
   }
 
-  @Get('/company/:userId')
+  @Get('/company/:companyId')
   @ApiParam({
     required: true,
-    name: 'userId',
+    name: 'companyId',
   })
   @ApiOperation({
     summary: 'Get all user companies applicant information',
@@ -250,10 +250,10 @@ export class ApplicantFormController {
   })
   @UseGuards(AccessTokenGuard)
   @ApiBearerAuth()
-  async getAllCompaniesApplicants(@Param('userId') userId: string) {
-    return this.participantFormService.getAllCompaniesParticipants(
+  async getAllCompaniesApplicants(@Param('companyId') companyId: string) {
+    return this.participantFormService.getAllCompanyParticipants(
       true,
-      userId,
+      companyId,
     );
   }
 

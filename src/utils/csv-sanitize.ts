@@ -14,7 +14,10 @@ import {
 import { ICsvUser } from '@/company/interfaces/sanitized-data.interface';
 import { clearWrongFields, validateData } from './validator.util';
 
-export async function sanitizeData(data: any): Promise<{
+export async function sanitizeData(
+  data: any,
+  createCSVData: any,
+): Promise<{
   sanitized: ISanitizedData;
   errorData: any;
   reasons: any;
@@ -100,7 +103,13 @@ export async function sanitizeData(data: any): Promise<{
     const targetDate = new Date('2024-01-01');
     const date =
       formationDate instanceof Date ? formationDate : new Date(formationDate);
-    sanitized.company.isExistingCompany = date < targetDate;
+    if (!sanitized.company.currentCompany) {
+      sanitized.company.currentCompany = {
+        isExistingCompany: date < targetDate,
+      };
+    } else {
+      sanitized.company.currentCompany.isExistingCompany = date < targetDate;
+    }
   }
 
   companyKeys.forEach((key) => {
@@ -115,14 +124,14 @@ export async function sanitizeData(data: any): Promise<{
 
   if (
     !(
-      sanitized.company.isExistingCompany ||
+      sanitized.company.currentCompany.isExistingCompany ||
       (sanitized.company.repCompanyInfo &&
         sanitized.company.repCompanyInfo.foreignPooled)
     )
   ) {
     const applicantCount =
-      data['Applicant Document Type']?.length ||
-      data['Applicant FinCEN ID']?.length;
+      (data['Applicant Document Type']?.filter(Boolean).length ?? 0) +
+      (data['Applicant FinCEN ID']?.filter(Boolean).length ?? 0);
     for (let i = 0; i < applicantCount; i++) {
       const participant: any = { isApplicant: true };
       if (
@@ -151,7 +160,9 @@ export async function sanitizeData(data: any): Promise<{
   }
 
   const ownerCountBySanitizedData =
-    data['Owner Document Type']?.length || data['Owner FinCEN ID']?.length;
+    (data['Owner Document Type']?.filter(Boolean).length ?? 0) +
+    (data['Owner FinCEN ID']?.filter(Boolean).length ?? 0);
+
   const ownerCount = sanitized.company.repCompanyInfo.foreignPooled
     ? 1
     : ownerCountBySanitizedData;
@@ -207,6 +218,7 @@ export async function sanitizeData(data: any): Promise<{
     sanitized.participants.push(participant);
   }
 
+  await createCSVData.create(sanitized);
   const { isDeletedCompany, errorData } = await validateData(sanitized);
   const { reasons, companyDeleted } = await clearWrongFields(sanitized);
 

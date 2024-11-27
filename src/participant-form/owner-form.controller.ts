@@ -247,10 +247,10 @@ export class OwnerFormController {
     );
   }
 
-  @Get('/company/:userId')
+  @Get('/company/:companyId')
   @ApiParam({
     required: true,
-    name: 'userId',
+    name: 'companyId',
   })
   @ApiOperation({
     summary: 'Get all user companies applicant information',
@@ -260,10 +260,10 @@ export class OwnerFormController {
   })
   @UseGuards(AccessTokenGuard)
   @ApiBearerAuth()
-  async getAllCompaniesOwners(@Param('userId') userId: string) {
-    return this.participantFormService.getAllCompaniesParticipants(
+  async getAllCompaniesOwners(@Param('companyId') companyId: string) {
+    return this.participantFormService.getAllCompanyParticipants(
       false,
-      userId,
+      companyId,
     );
   }
 

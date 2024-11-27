@@ -6,6 +6,7 @@ import {
   forwardRef,
   Inject,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
@@ -45,10 +46,16 @@ export class AzureService {
       /[^a-zA-Z0-9!@#$%()_\-\.=+\[\]{}|;~]/g,
       '_',
     );
-    const redactedFileName = `${Date.now()}_${sanitizedFileName}`;
-    const blockBlobClient = this.getBlockBlobClient(redactedFileName);
 
-    await blockBlobClient.uploadData(file.buffer);
+    const redactedFileName = `${Date.now()}_${sanitizedFileName}`;
+    try {
+      const blockBlobClient = this.getBlockBlobClient(redactedFileName);
+
+      await blockBlobClient.uploadData(file.buffer);
+    } catch (error) {
+      console.error(error, 'error');
+    }
+
     return redactedFileName;
   }
 
@@ -57,16 +64,21 @@ export class AzureService {
     participantId?: string,
     user?: IRequestUser,
   ) {
-    if (user) {
-      await this.companyService.checkUserCompanyPermission(
-        user,
-        participantId,
-        'participantForm',
-      );
+    try {
+      if (user) {
+        await this.companyService.checkUserCompanyPermission(
+          user,
+          participantId,
+          'participantForm',
+        );
+      }
+      const blockBlobClient = this.getBlockBlobClient(fileName);
+      const blobDownload = await blockBlobClient.download(0);
+      return blobDownload.readableStreamBody;
+    } catch (error) {
+      console.error('err', error);
+      throw new NotFoundException('Image not found');
     }
-    const blockBlobClient = this.getBlockBlobClient(fileName);
-    const blobDownload = await blockBlobClient.download(0);
-    return blobDownload.readableStreamBody;
   }
 
   async readAll() {

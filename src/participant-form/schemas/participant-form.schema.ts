@@ -117,9 +117,6 @@ class ExemptEntity {
 
 @Schema({ timestamps: true })
 export class ApplicantForm {
-  @Prop({ required: false })
-  applicant: ExistingCompanyApplicant;
-
   @Prop()
   finCENID: FinCENID;
 

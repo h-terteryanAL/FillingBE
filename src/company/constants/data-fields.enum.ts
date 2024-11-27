@@ -15,7 +15,7 @@ export enum CompanyData {
   'Company US or Territory' = 'address.usOrUsTerritory',
   'Company State' = 'address.state',
   'Company Zip code' = 'address.zipCode',
-  'Company Exists' = 'isExistingCompany',
+  'Company Exists' = 'currentCompany.isExistingCompany',
 }
 
 export enum UserData {

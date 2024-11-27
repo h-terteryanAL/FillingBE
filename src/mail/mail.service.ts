@@ -93,7 +93,6 @@ export class MailService {
         path.resolve(),
         `/src/mail/templates/${isNewCompany ? 'invitation' : 'change-notification'}.hbs`,
       );
-      console.log(this.link);
 
       const template = fs.readFileSync(templatePath, 'utf-8');
       const compiledFile = Handlebars.compile(template);

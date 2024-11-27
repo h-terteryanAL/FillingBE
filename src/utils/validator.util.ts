@@ -155,7 +155,8 @@ async function validateTheData(
             if (
               (type === 'applicant' &&
                 requiredApplicantFields.includes(fieldInDb)) ||
-              (type === 'owner' && requiredOwnerFields.includes(fieldInDb))
+              (type === 'owner' && requiredOwnerFields.includes(fieldInDb)) ||
+              fieldInDb === 'finCENID.finCENID'
             ) {
               finalStatus.isDeletedCompany = true;
             }
@@ -221,44 +222,9 @@ export async function clearWrongFields(sanitized: ISanitizedData) {
     companyDeleted = true;
   }
 
-  if (
-    company.formationJurisdiction &&
-    !company.formationJurisdiction.countryOrJurisdictionOfFormation
-  ) {
-    reasons.push({
-      fields: [
-        companyFormFields.formationJurisdiction
-          .countryOrJurisdictionOfFormation,
-      ],
-      problemDesc:
-        'Formation jurisdiction is missing required country or jurisdiction data.',
-    });
-
-    companyDeleted = true;
-  }
-
   const formationOfJurisdiction = company.formationJurisdiction;
   if (formationOfJurisdiction) {
     if (
-      formationOfJurisdiction.countryOrJurisdictionOfFormation === UNITED_STATES
-    ) {
-      if (
-        formationOfJurisdiction.stateOfFormation &&
-        formationOfJurisdiction.tribalJurisdiction
-      ) {
-        const reasonData = {
-          fields: [
-            companyFormFields.formationJurisdiction.stateOfFormation,
-            companyFormFields.formationJurisdiction.tribalJurisdiction,
-          ],
-          problemDesc:
-            'Only one of "state" or "local/tribal" may be specified for United States entries',
-        };
-
-        companyDeleted = true;
-        reasons.push(reasonData);
-      }
-    } else if (
       countriesWithStates.includes(
         formationOfJurisdiction.countryOrJurisdictionOfFormation,
       )
@@ -299,34 +265,29 @@ export async function clearWrongFields(sanitized: ISanitizedData) {
         reasons.push(reasonData);
       }
     } else if (
-      formationOfJurisdiction.stateOfFormation ||
-      formationOfJurisdiction.tribalJurisdiction ||
-      formationOfJurisdiction.nameOfOtherTribal
+      formationOfJurisdiction.stateOfFormation &&
+      formationOfJurisdiction.tribalJurisdiction
     ) {
       const reasonData = {
-        fields: [],
-        problemDesc: formationOfJurisdiction.countryOrJurisdictionOfFormation
-          ? 'The selected country does not support state, local, or tribal data.'
-          : 'Identification details include state, local, or tribal data without a specified country or jurisdiction.',
+        fields: [
+          companyFormFields.formationJurisdiction.stateOfFormation,
+          companyFormFields.formationJurisdiction.tribalJurisdiction,
+        ],
+        problemDesc:
+          'Only one of "state" or "local/tribal" may be specified for United States entries',
       };
 
-      if (formationOfJurisdiction.stateOfFormation) {
-        reasonData.fields.push(
-          companyFormFields.formationJurisdiction.stateOfFormation,
-        );
-      }
-
-      if (formationOfJurisdiction.tribalJurisdiction) {
-        reasonData.fields.push(
-          companyFormFields.formationJurisdiction.tribalJurisdiction,
-        );
-      }
-
-      if (formationOfJurisdiction.nameOfOtherTribal) {
-        reasonData.fields.push(
-          companyFormFields.formationJurisdiction.nameOfOtherTribal,
-        );
-      }
+      companyDeleted = true;
+      reasons.push(reasonData);
+    } else if (
+      formationOfJurisdiction.nameOfOtherTribal &&
+      formationOfJurisdiction.tribalJurisdiction !== 'Other'
+    ) {
+      const reasonData = {
+        fields: [companyFormFields.formationJurisdiction.nameOfOtherTribal],
+        problemDesc:
+          'This field can only be entered when Local/Tribal is set to "Other".',
+      };
 
       companyDeleted = true;
       reasons.push(reasonData);

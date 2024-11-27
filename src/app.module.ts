@@ -4,9 +4,13 @@ import { APP_GUARD } from '@nestjs/core';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from './auth/auth.module';
+import { AzureController } from './azure/azure.controller';
+import { AzureModule } from './azure/azure.module';
 import { CompanyFormModule } from './company-form/company-form.module';
 import { CompanyModule } from './company/company.module';
 import configs from './config';
+import { CsvDataController } from './csv-data/csv-data.controller';
+import { CsvDataModule } from './csv-data/csv-data.module';
 import { GovernmentModule } from './government/government.module';
 import { MailModule } from './mail/mail.module';
 import { ParticipantFormModule } from './participant-form/participant-form.module';
@@ -15,8 +19,6 @@ import { SchedulerService } from './scheduler/scheduler.service';
 import { SeederService } from './seeders/admin/admin-seeder.service';
 import { TransactionModule } from './transaction/transaction.module';
 import { UserModule } from './user/user.module';
-import { AzureController } from './azure/azure.controller';
-import { AzureModule } from './azure/azure.module';
 
 @Module({
   imports: [
@@ -49,6 +51,7 @@ import { AzureModule } from './azure/azure.module';
     GovernmentModule,
     TransactionModule,
     AzureModule,
+    CsvDataModule,
   ],
   providers: [
     {
@@ -58,7 +61,7 @@ import { AzureModule } from './azure/azure.module';
     SeederService,
     SchedulerService,
   ],
-  controllers: [AzureController],
+  controllers: [AzureController, CsvDataController],
 })
 export class AppModule implements OnModuleInit {
   constructor(private readonly seederService: SeederService) {}

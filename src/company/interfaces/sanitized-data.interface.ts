@@ -28,7 +28,9 @@ export interface ICompanyData {
   };
   address?: IAddress;
   repCompanyInfo?: IRepCompanyInfo;
-  isExistingCompany: boolean;
+  currentCompany?: {
+    isExistingCompany: boolean;
+  };
 }
 
 interface IRepCompanyInfo {

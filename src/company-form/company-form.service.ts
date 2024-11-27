@@ -84,7 +84,7 @@ export class CompanyFormService {
     const foreignPooledBefore = companyData.repCompanyInfo?.foreignPooled;
     const companyNameBefore = companyData.names.legalName;
     const companyExistingData =
-      companyFormData.currentCompany.isExistingCompany || undefined;
+      companyFormData?.currentCompany?.isExistingCompany || undefined;
     delete companyFormData.currentCompany;
 
     if (companyFormData.taxInfo) {
@@ -128,7 +128,11 @@ export class CompanyFormService {
       }
     }
 
-    if (!isForCsv && (typeof companyExistingData === 'boolean' || companyData.repCompanyInfo.foreignPooled)) {
+    if (
+      !isForCsv &&
+      (typeof companyExistingData === 'boolean' ||
+        companyData.repCompanyInfo.foreignPooled)
+    ) {
       await this.companyService.changeCompanyExistingApplicantData(
         companyExistingData,
         companyData.repCompanyInfo.foreignPooled,

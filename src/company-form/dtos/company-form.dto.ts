@@ -44,6 +44,12 @@ class RepCompanyInfoDto {
   isVerified?: boolean;
 }
 
+class ExistingCompanyDto {
+  @ApiProperty({ required: true })
+  @IsBoolean()
+  isExistingCompany: boolean;
+}
+
 class LegalAndAltNamesDto {
   @ApiProperty({ required: false })
   @IsOptional()
@@ -286,7 +292,9 @@ export class CSVCompanyFormDto {
   @Type(() => CompanyAddressDto)
   address?: CompanyAddressDto;
 
-  @ApiProperty({ type: Boolean, required: true })
-  @IsBoolean()
-  isExistingCompany: boolean;
+  @ApiProperty({ type: ExistingCompanyDto, required: true })
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => ExistingCompanyDto)
+  currentCompany: ExistingCompanyDto;
 }

@@ -39,8 +39,6 @@ export const ownerFormFields = {
   personalInfo: {
     lastOrLegalName: 'Owner Last or Legal Name',
     firstName: 'Owner First Name',
-    middleName: 'Owner Middle Name',
-    suffix: 'Owner Suffix',
     dateOfBirth: 'Owner Date of Birth',
   },
   address: {
