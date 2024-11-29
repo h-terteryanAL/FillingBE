@@ -2,6 +2,7 @@ import { CompanyService } from '@/company/company.service';
 import { GovernmentService } from '@/government/government.service';
 import { forwardRef, Inject, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { MailService } from '@/mail/mail.service';
 import { Model } from 'mongoose';
 import Stripe from 'stripe';
 import {
@@ -20,6 +21,7 @@ export class TransactionService {
     @InjectModel(Transaction.name)
     private transactionModel: Model<TransactionDocument>,
     @Inject(forwardRef(() => CompanyService))
+    private readonly mailService: MailService,
     private readonly companyService: CompanyService,
     private readonly governmentService: GovernmentService,
   ) {
@@ -175,6 +177,15 @@ export class TransactionService {
     );
 
     await this.governmentService.sendCompanyDataToGovernment(companyIds);
+    Promise.all(
+      companyIds.map(async (companyId: string) => {
+        const company = await this.companyService.getCompanyById(companyId);
+        await this.mailService.sendInvoiceToUser(
+          company.user.firstName, company.name, company.user.email, paymentIntent.id
+        )
+      })
+    )
+
     return { message: transactionMessages.statusChanged };
   }
 

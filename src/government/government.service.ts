@@ -5,8 +5,7 @@ import { HttpService } from '@nestjs/axios';
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AxiosResponse } from 'axios';
-import * as fs from 'node:fs';
-import * as path from 'node:path';
+import { MailService } from '@/mail/mail.service';
 import { firstValueFrom } from 'rxjs';
 import { IAttachmentResponse } from './interfaces';
 
@@ -18,6 +17,7 @@ export class GovernmentService {
   private readonly mainURL: string;
   private readonly tokenURL: string;
   private readonly logger = new Logger(GovernmentService.name);
+  
 
   private accessToken: string | null = null;
 
@@ -27,6 +27,7 @@ export class GovernmentService {
     private readonly companyService: CompanyService,
     private httpService: HttpService,
     private readonly azureService: AzureService,
+    private readonly mailService: MailService,
   ) {
     this.clientSecret = this.configService.get<string>(
       'GOVERNMENT.clientSecret',
@@ -110,7 +111,7 @@ export class GovernmentService {
             await this.streamToBinary(applicantImageData)
           ).toString('base64');
           const URIName = encodeURI(applicant.identificationDetails.docImg);
-          const response: AxiosResponse = await firstValueFrom(
+         await firstValueFrom(
             this.httpService.post(
               `${this.sandboxURL}/attachments/${processId}/${URIName}`,
               binaryImageData,
@@ -232,6 +233,9 @@ export class GovernmentService {
         const company = await this.companyService.getCompanyById(companyId);
         company.processId = null;
         company.save();
+      } else if (response.data.status.submissionStatus === 'submission_validation_passed') {
+        const company = await this.companyService.getCompanyById(companyId);
+        await this.mailService.sendPDFtoUsers(company.user.firstName, company.name, company.user.email, response.data.pdfBinary)
       }
 
       return response.data;

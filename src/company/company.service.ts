@@ -1006,6 +1006,17 @@ export class CompanyService {
 
     await company.save();
   }
+
+  async getCurrentParticipantForms(companyId: string, isApplicant: boolean) {
+    const company = await this.companyModel.findById(companyId);
+
+    if (!company) {
+      throw new NotFoundException(companyResponseMsgs.companyNotFound);
+    }
+
+    console.log(company.forms, 'forms in company');
+    return company.forms[`${isApplicant ? 'applicants' : 'owners'}`];
+  }
   // need some changes after admin part creating
   // async createNewCompany(payload: any) {
   //   const existCompanyForm =

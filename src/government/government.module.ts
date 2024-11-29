@@ -5,13 +5,15 @@ import { GovernmentService } from './government.service';
 import { CompanyModule } from '@/company/company.module';
 import { HttpModule } from '@nestjs/axios';
 import { AzureModule } from '@/azure/azure.module';
+import { MailModule } from '@/mail/mail.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
     forwardRef(() => CompanyModule),
     HttpModule,
-    AzureModule
+    AzureModule,
+    MailModule
   ],
   providers: [GovernmentService],
   exports: [GovernmentService],

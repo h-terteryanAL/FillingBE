@@ -4,7 +4,6 @@ import {
   countriesWithStates,
   requiredCompanyFields,
 } from '@/company/constants';
-import { TRResponseMsg } from '@/participant-form/interfaces';
 import { ParticipantFormService } from '@/participant-form/participant-form.service';
 import { calculateRequiredFieldsCount } from '@/utils/req-field.util';
 import {
@@ -66,7 +65,7 @@ export class CompanyFormService {
     companyForeignPooled?: { isForeignPooled: boolean },
     isForCsv?: boolean,
     company?: any,
-  ): TRResponseMsg {
+  ) {
     if (user && typeof user !== 'boolean') {
       await this.companyService.checkUserCompanyPermission(
         user,

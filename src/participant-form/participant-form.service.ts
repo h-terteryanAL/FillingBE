@@ -28,10 +28,7 @@ import {
   ownerFormFields,
   participantFormResponseMsgs,
 } from './constants';
-import {
-  TRCreateParticipantByCSV,
-  TRResponseMsg,
-} from './interfaces/participant-service.interface';
+import { TRCreateParticipantByCSV } from './interfaces/participant-service.interface';
 import {
   ApplicantForm,
   ApplicantFormDocument,
@@ -322,6 +319,13 @@ export class ParticipantFormService {
     }
 
     await this.companyService.changeCompanyCounts(companyId);
+    const companyFormData =
+      await this.companyService.getCurrentParticipantForms(
+        companyId,
+        isApplicant,
+      );
+
+    return { participantForms: companyFormData };
   }
 
   async getParticipantFormById(
@@ -351,7 +355,7 @@ export class ParticipantFormService {
     isApplicant: boolean,
     user?: IRequestUser,
     companyId?: string,
-  ): TRResponseMsg {
+  ) {
     if (user) {
       await this.companyService.checkUserCompanyPermission(
         user,
@@ -388,7 +392,16 @@ export class ParticipantFormService {
       await this.ownerFormModel.findByIdAndDelete(participantFormId);
     }
 
-    return { message: participantFormResponseMsgs.deleted };
+    const companyFormData =
+      await this.companyService.getCurrentParticipantForms(
+        companyId,
+        isApplicant,
+      );
+
+    return {
+      message: participantFormResponseMsgs.deleted,
+      participantForms: companyFormData,
+    };
   }
 
   async updateDocImageInParticipantForm(
@@ -421,7 +434,7 @@ export class ParticipantFormService {
   async uploadAnImageAndCreate(
     companyId: string,
     docImg: Express.Multer.File,
-    payload: { docNum: string; docType: string },
+    payload: { docNumber: string; docType: string, countryOrJurisdiction?: string, state?: string, localOrTribal?: string, otherLocalOrTribal?: string },
     isApplicant: boolean,
     user: IRequestUser,
   ) {
@@ -431,19 +444,20 @@ export class ParticipantFormService {
       'company',
     );
 
-    const { docNum, docType } = payload;
+    
+    const { docNumber, docType } = payload;
     const company = await this.companyService.getCompanyById(companyId);
     const docImgName = await this.azureService.uploadImage(docImg);
     const participantIsExist = isApplicant
-      ? await this.applicantFormModel.findOne({
-          ['identificationDetails.docNumber']: docNum,
-          ['identificationDetails.docType']: docType,
-        })
-      : await this.ownerFormModel.findOne({
-          ['identificationDetails.docNumber']: docNum,
-          ['identificationDetails.docType']: docType,
-        });
-
+    ? await this.applicantFormModel.findOne({
+      ['identificationDetails.docNumber']: docNumber,
+      ['identificationDetails.docType']: docType,
+    })
+    : await this.ownerFormModel.findOne({
+      ['identificationDetails.docNumber']: docNumber,
+      ['identificationDetails.docType']: docType,
+    });
+    
     if (participantIsExist) {
       if (
         company.forms[isApplicant ? 'applicants' : 'owners'].includes(
@@ -453,23 +467,16 @@ export class ParticipantFormService {
         throw new ConflictException('Current Participant is already exist');
       }
     }
-
+    
+    const identificationDetails = {...payload, docImg: docImgName}
     const createdParticipant = isApplicant
       ? await this.applicantFormModel.create({
-          identificationDetails: {
-            docNumber: docNum,
-            docType,
-            docImg: docImgName,
-          },
-          answerCount: 3,
+          identificationDetails,
+          answerCount: payload.countryOrJurisdiction ? 4 : 3,
         })
       : await this.ownerFormModel.create({
-          identificationDetails: {
-            docNumber: docNum,
-            docType,
-            docImg: docImgName,
-          },
-          answerCount: 3,
+          identificationDetails,
+          answerCount: payload.countryOrJurisdiction ? 4 : 3,
         });
 
     company.forms[`${isApplicant ? 'applicants' : 'owners'}`].push(
@@ -479,10 +486,17 @@ export class ParticipantFormService {
     await company.save();
     await this.companyService.changeCompanyCounts(companyId);
 
+    const companyFormData =
+      await this.companyService.getCurrentParticipantForms(
+        companyId,
+        isApplicant,
+      );
+
     return {
       message: participantFormResponseMsgs.created,
       participantId: createdParticipant['id'],
       docImg: docImgName,
+      participantForms: companyFormData,
     };
   }
 
@@ -493,7 +507,6 @@ export class ParticipantFormService {
         isApplicant,
       );
 
-    console.log(userParticipants, 'participants');
     const filtered = userParticipants.map((participant: any) => {
       const participantKeys = [
         'finCENID',
@@ -505,7 +518,6 @@ export class ParticipantFormService {
       ];
       const allVerified = Object.keys(participant['_doc']).every((key) => {
         if (participantKeys.includes(key)) {
-          console.log(participant[key]?.isVerified, 'isVerified', key);
           return participant[key]?.isVerified || false;
         } else {
           return true;

@@ -6,6 +6,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Transaction, TransactionSchema } from './schemas/transaction.schema';
 import { TransactionController } from './transaction.controller';
 import { TransactionService } from './transaction.service';
+import { MailModule } from '@/mail/mail.module';
 
 @Module({
   imports: [
@@ -31,7 +32,8 @@ export class TransactionModule {
   static forRootAsync(): DynamicModule {
     return {
       module: TransactionModule,
-      imports: [ConfigModule.forRoot()],
+      imports: [ConfigModule.forRoot(),
+        MailModule],
       providers: [
         TransactionService,
         {

@@ -220,8 +220,131 @@ export class MailService {
   async notifyAdminAboutExpiredCompanies(
     companies: { user: { name: string; email: string } }[],
   ) {
-    console.log(companies);
-    // implement in future
+    const templatePath = path.join(
+      path.resolve(),
+      '/src/mail/templates/expired-notification.hbs',
+    );
+
+    const template = fs.readFileSync(templatePath, 'utf-8');
+    const compiledFile = Handlebars.compile(template);
+    const htmlContent = compiledFile({
+      companies,
+    });
+    try {
+      const mail: SendGrid.MailDataRequired = {
+        to: this.adminEmail,
+        from: this.emailFrom,
+        subject: 'Expired companies List',
+        html: htmlContent,
+      };
+  
+      const sendgridData = await SendGrid.send(mail);
+      const messageId = sendgridData[0]?.headers['x-message-id'];
+      await this.createEmailData(MessageTypeEnum.OTP, messageId, this.adminEmail);
+    } catch (error) {
+      await this.createErrorData(
+        MessageTypeEnum.OTP,
+        this.adminEmail,
+        error.message,
+      );
+      throw new HttpException(
+        {
+          status: error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+          error: error.message || 'An unexpected error occurred',
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async sendPDFtoUsers(
+    userName: string,
+    companyName: string,
+    email: string,
+    pdf: string
+  ) {
+    const templatePath = path.join(
+      path.resolve(),
+      '/src/mail/templates/pdf-report.hbs',
+    );
+
+    const template = fs.readFileSync(templatePath, 'utf-8');
+    const compiledFile = Handlebars.compile(template);
+    const htmlContent = compiledFile({
+      userName,
+      companyName,
+      pdf
+    });
+    try {
+      const mail: SendGrid.MailDataRequired = {
+        to: email,
+        from: this.emailFrom,
+        subject: 'Company report success',
+        html: htmlContent,
+      };
+  
+      const sendgridData = await SendGrid.send(mail);
+      const messageId = sendgridData[0]?.headers['x-message-id'];
+      await this.createEmailData(MessageTypeEnum.OTP, messageId, email);
+    } catch (error) {
+      await this.createErrorData(
+        MessageTypeEnum.OTP,
+        email,
+        error.message,
+      );
+      throw new HttpException(
+        {
+          status: error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+          error: error.message || 'An unexpected error occurred',
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async sendInvoiceToUser(
+    userName: string,
+    companyName: string,
+    email: string,
+    invoice: string
+  ) {
+    const templatePath = path.join(
+      path.resolve(),
+      '/src/mail/templates/invoice.hbs',
+    );
+
+    const template = fs.readFileSync(templatePath, 'utf-8');
+    const compiledFile = Handlebars.compile(template);
+    const htmlContent = compiledFile({
+      userName,
+      companyName,
+      invoice
+    });
+    try {
+      const mail: SendGrid.MailDataRequired = {
+        to: email,
+        from: this.emailFrom,
+        subject: 'Company paid success',
+        html: htmlContent,
+      };
+  
+      const sendgridData = await SendGrid.send(mail);
+      const messageId = sendgridData[0]?.headers['x-message-id'];
+      await this.createEmailData(MessageTypeEnum.OTP, messageId, email);
+    } catch (error) {
+      await this.createErrorData(
+        MessageTypeEnum.OTP,
+        email,
+        error.message,
+      );
+      throw new HttpException(
+        {
+          status: error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+          error: error.message || 'An unexpected error occurred',
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   async createEmailData(

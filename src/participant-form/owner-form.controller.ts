@@ -128,7 +128,7 @@ export class OwnerFormController {
     );
   }
 
-  @Delete(':formId')
+  @Delete('/:companyId/:formId')
   @ApiOperation({
     summary: 'Remove owner by formId',
   })

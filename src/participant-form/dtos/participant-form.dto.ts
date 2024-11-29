@@ -297,5 +297,5 @@ export class CreateParticipantDocDto {
 
   @IsString()
   @MaxLength(25)
-  docNum: string;
+  docNumber: string;
 }
