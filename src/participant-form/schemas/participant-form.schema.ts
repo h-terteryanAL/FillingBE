@@ -6,17 +6,8 @@ export type ApplicantFormDocument = ApplicantForm & Document;
 
 @Schema({ _id: false })
 class BeneficialOwner {
-  @Prop()
-  isParentOrGuard: boolean;
-
   @Prop({ default: false })
-  isVerified: boolean;
-}
-
-@Schema({ _id: false })
-class ExistingCompanyApplicant {
-  @Prop()
-  isExistingCompany: boolean;
+  isParentOrGuard: boolean;
 
   @Prop({ default: false })
   isVerified: boolean;
@@ -108,7 +99,7 @@ class IdentificationAndJurisdiction {
 
 @Schema({ _id: false })
 class ExemptEntity {
-  @Prop()
+  @Prop({ default: false })
   isExemptEntity: boolean;
 
   @Prop({ default: false })

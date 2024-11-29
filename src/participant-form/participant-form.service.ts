@@ -356,52 +356,56 @@ export class ParticipantFormService {
     user?: IRequestUser,
     companyId?: string,
   ) {
-    if (user) {
-      await this.companyService.checkUserCompanyPermission(
-        user,
-        participantFormId,
-        'participantForm',
-      );
+    try {
+      if (user) {
+        await this.companyService.checkUserCompanyPermission(
+          user,
+          participantFormId,
+          'participantForm',
+        );
+      }
+
+      const participantForm = isApplicant
+        ? await this.applicantFormModel.findOne({ _id: participantFormId })
+        : await this.ownerFormModel.findOne({ _id: participantFormId });
+
+      if (!participantForm) {
+        throw new NotFoundException(participantFormResponseMsgs.formNotFound);
+      }
+
+      const imageName = participantForm.identificationDetails?.docImg;
+
+      if (imageName) {
+        await this.azureService.delete(imageName);
+      }
+
+      if (companyId) {
+        await this.companyService.removeParticipantFromCompany(
+          participantFormId,
+          companyId,
+          isApplicant,
+        );
+      }
+
+      if (isApplicant) {
+        await this.applicantFormModel.findByIdAndDelete(participantFormId);
+      } else {
+        await this.ownerFormModel.findByIdAndDelete(participantFormId);
+      }
+
+      const companyFormData =
+        await this.companyService.getCurrentParticipantForms(
+          companyId,
+          isApplicant,
+        );
+
+      return {
+        message: participantFormResponseMsgs.deleted,
+        participantForms: companyFormData,
+      };
+    } catch (error) {
+      console.log(error);
     }
-
-    const participantForm = isApplicant
-      ? await this.applicantFormModel.findOne({ _id: participantFormId })
-      : await this.ownerFormModel.findOne({ _id: participantFormId });
-
-    if (!participantForm) {
-      throw new NotFoundException(participantFormResponseMsgs.formNotFound);
-    }
-
-    const imageName = participantForm.identificationDetails?.docImg;
-
-    if (imageName) {
-      await this.azureService.delete(imageName);
-    }
-
-    if (companyId) {
-      await this.companyService.removeParticipantFromCompany(
-        participantFormId,
-        companyId,
-        isApplicant,
-      );
-    }
-
-    if (isApplicant) {
-      await this.applicantFormModel.findByIdAndDelete(participantFormId);
-    } else {
-      await this.ownerFormModel.findByIdAndDelete(participantFormId);
-    }
-
-    const companyFormData =
-      await this.companyService.getCurrentParticipantForms(
-        companyId,
-        isApplicant,
-      );
-
-    return {
-      message: participantFormResponseMsgs.deleted,
-      participantForms: companyFormData,
-    };
   }
 
   async updateDocImageInParticipantForm(
@@ -434,7 +438,14 @@ export class ParticipantFormService {
   async uploadAnImageAndCreate(
     companyId: string,
     docImg: Express.Multer.File,
-    payload: { docNumber: string; docType: string, countryOrJurisdiction?: string, state?: string, localOrTribal?: string, otherLocalOrTribal?: string },
+    payload: {
+      docNumber: string;
+      docType: string;
+      countryOrJurisdiction?: string;
+      state?: string;
+      localOrTribal?: string;
+      otherLocalOrTribal?: string;
+    },
     isApplicant: boolean,
     user: IRequestUser,
   ) {
@@ -444,20 +455,19 @@ export class ParticipantFormService {
       'company',
     );
 
-    
     const { docNumber, docType } = payload;
     const company = await this.companyService.getCompanyById(companyId);
     const docImgName = await this.azureService.uploadImage(docImg);
     const participantIsExist = isApplicant
-    ? await this.applicantFormModel.findOne({
-      ['identificationDetails.docNumber']: docNumber,
-      ['identificationDetails.docType']: docType,
-    })
-    : await this.ownerFormModel.findOne({
-      ['identificationDetails.docNumber']: docNumber,
-      ['identificationDetails.docType']: docType,
-    });
-    
+      ? await this.applicantFormModel.findOne({
+          ['identificationDetails.docNumber']: docNumber,
+          ['identificationDetails.docType']: docType,
+        })
+      : await this.ownerFormModel.findOne({
+          ['identificationDetails.docNumber']: docNumber,
+          ['identificationDetails.docType']: docType,
+        });
+
     if (participantIsExist) {
       if (
         company.forms[isApplicant ? 'applicants' : 'owners'].includes(
@@ -467,8 +477,8 @@ export class ParticipantFormService {
         throw new ConflictException('Current Participant is already exist');
       }
     }
-    
-    const identificationDetails = {...payload, docImg: docImgName}
+
+    const identificationDetails = { ...payload, docImg: docImgName };
     const createdParticipant = isApplicant
       ? await this.applicantFormModel.create({
           identificationDetails,
