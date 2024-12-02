@@ -6,6 +6,8 @@ import {
   Delete,
   FileTypeValidator,
   Get,
+  HttpException,
+  HttpStatus,
   MaxFileSizeValidator,
   Param,
   ParseFilePipe,
@@ -60,12 +62,19 @@ export class OwnerFormController {
     @Req() req: RequestWithUser,
     @Param('companyId') companyId: string,
   ) {
-    return this.participantFormService.createParticipantForm(
-      payload,
-      companyId,
-      false,
-      req.user,
-    );
+    try {
+      return this.participantFormService.createParticipantForm(
+        payload,
+        companyId,
+        false,
+        req.user,
+      );
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'An error occurred while retrieving the company form.',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Patch(':companyId/:formId')
@@ -102,13 +111,20 @@ export class OwnerFormController {
     @Body() payload: OwnerFormDto,
     @Req() req: RequestWithUser,
   ) {
-    return this.participantFormService.changeParticipantForm(
-      payload,
-      formId,
-      false,
-      companyId,
-      req.user,
-    );
+    try {
+      return this.participantFormService.changeParticipantForm(
+        payload,
+        formId,
+        false,
+        companyId,
+        req.user,
+      );
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'An error occurred while retrieving the company form.',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Get(':formId')
@@ -121,11 +137,18 @@ export class OwnerFormController {
     @Param('formId') formId: string,
     @Req() req: RequestWithUser,
   ) {
-    return this.participantFormService.getParticipantFormById(
-      formId,
-      false,
-      req.user,
-    );
+    try {
+      return this.participantFormService.getParticipantFormById(
+        formId,
+        false,
+        req.user,
+      );
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'An error occurred while retrieving the company form.',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Delete('/:companyId/:formId')
@@ -147,12 +170,19 @@ export class OwnerFormController {
     @Param('companyId') companyId: string,
     @Req() req: RequestWithUser,
   ) {
-    return this.participantFormService.deleteParticipantFormById(
-      formId,
-      false,
-      req.user,
-      companyId,
-    );
+    try {
+      return this.participantFormService.deleteParticipantFormById(
+        formId,
+        false,
+        req.user,
+        companyId,
+      );
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'An error occurred while retrieving the company form.',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Post('uploadDocImg/:companyId')
@@ -194,13 +224,20 @@ export class OwnerFormController {
     @Body() payload: CreateParticipantDocDto,
     @Req() req: RequestWithUser,
   ) {
-    return await this.participantFormService.uploadAnImageAndCreate(
-      companyId,
-      docImg,
-      payload,
-      false,
-      req.user,
-    );
+    try {
+      return await this.participantFormService.uploadAnImageAndCreate(
+        companyId,
+        docImg,
+        payload,
+        false,
+        req.user,
+      );
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'An error occurred while retrieving the company form.',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Post('uploadAndUpdate/:participantId')
@@ -239,12 +276,19 @@ export class OwnerFormController {
     docImg: Express.Multer.File,
     @Req() req: RequestWithUser,
   ) {
-    return await this.participantFormService.updateDocImageInParticipantForm(
-      participantId,
-      docImg,
-      req.user,
-      false,
-    );
+    try {
+      return await this.participantFormService.updateDocImageInParticipantForm(
+        participantId,
+        docImg,
+        req.user,
+        false,
+      );
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'An error occurred while retrieving the company form.',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Get('/company/:companyId')
@@ -261,10 +305,17 @@ export class OwnerFormController {
   @UseGuards(AccessTokenGuard)
   @ApiBearerAuth()
   async getAllCompaniesOwners(@Param('companyId') companyId: string) {
-    return this.participantFormService.getAllCompanyParticipants(
-      false,
-      companyId,
-    );
+    try {
+      return this.participantFormService.getAllCompanyParticipants(
+        false,
+        companyId,
+      );
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'An error occurred while retrieving the company form.',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Delete('/docImg/:companyId/:participantId')
@@ -289,11 +340,18 @@ export class OwnerFormController {
     @Param('companyId') companyId: string,
     @Req() req: RequestWithUser,
   ) {
-    return this.participantFormService.removeParticipantDocumentImage(
-      participantId,
-      req.user,
-      false,
-      companyId,
-    );
+    try {
+      return this.participantFormService.removeParticipantDocumentImage(
+        participantId,
+        req.user,
+        false,
+        companyId,
+      );
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'An error occurred while retrieving the company form.',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }

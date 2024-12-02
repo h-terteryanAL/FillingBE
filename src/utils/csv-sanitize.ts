@@ -31,7 +31,7 @@ export async function sanitizeData(
       ? new Date(data['BOIR Submission Deadline'][0])
       : null,
   };
-
+ 
   const companyKeys = Object.keys(CompanyData) as (keyof typeof CompanyData)[];
   const userKeys = Object.keys(UserData) as (keyof typeof UserData)[];
   const applicantKeys = Object.keys(

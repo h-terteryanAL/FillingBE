@@ -962,20 +962,17 @@ export class CompanyService {
 
     if (isApplicant) {
       const updatedApplicants = company.forms.applicants.filter(
-        (applicant: any) => applicant !== participantId,
+        (applicant: any) => !applicant.equals(participantId),
       );
-      if (updatedApplicants.length !== company.forms.applicants.length) {
-        company.forms.applicants = updatedApplicants;
-        await company.save();
-      }
+
+      company.forms.applicants = updatedApplicants;
+      await company.save();
     } else {
       const updatedOwners = company.forms.owners.filter(
-        (owner: any) => owner !== participantId,
+        (owner: any) => !owner.equals(participantId),
       );
-      if (updatedOwners.length !== company.forms.owners.length) {
-        company.forms.owners = updatedOwners;
-        await company.save();
-      }
+      company.forms.owners = updatedOwners;
+      await company.save();
 
       await this.changeCompanyCounts(companyId);
     }
@@ -1014,7 +1011,6 @@ export class CompanyService {
       throw new NotFoundException(companyResponseMsgs.companyNotFound);
     }
 
-    console.log(company.forms, 'forms in company');
     return company.forms[`${isApplicant ? 'applicants' : 'owners'}`];
   }
   // need some changes after admin part creating

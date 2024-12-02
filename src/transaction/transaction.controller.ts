@@ -1,5 +1,13 @@
 import { AccessTokenGuard } from '@/auth/guards/access-token.guard';
-import { Body, Controller, Patch, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpException,
+  HttpStatus,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -25,9 +33,16 @@ export class TransactionController {
   async createPaymentIntent(@Body() body: CreatePaymentIntentDto) {
     const { companyIds } = body;
 
-    return this.transactionService.createPaymentIntent(
-      companyIds as unknown as string[],
-    );
+    try {
+      return this.transactionService.createPaymentIntent(
+        companyIds as unknown as string[],
+      );
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'An error occurred while retrieving the company form.',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Patch('payment-succeed')
@@ -35,6 +50,13 @@ export class TransactionController {
   @UseGuards(AccessTokenGuard)
   @ApiNotFoundResponse({ description: transactionMessages.notFound })
   async updatePaymentStatus(@Body() body: SucceedPaymentDto) {
-    return this.transactionService.updateTransactionStatus(body);
+    try {
+      return this.transactionService.updateTransactionStatus(body);
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'An error occurred while retrieving the company form.',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }

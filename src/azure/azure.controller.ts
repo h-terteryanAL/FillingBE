@@ -5,6 +5,8 @@ import {
   Delete,
   Get,
   Header,
+  HttpException,
+  HttpStatus,
   Param,
   Query,
   Req,
@@ -47,13 +49,20 @@ export class AzureController {
     @Req() req: RequestWithUser,
     @Param('participantId') participantId: string,
   ) {
-    const data = await this.azureService.readStream(
-      name,
-      participantId,
-      req.user,
-    );
-    res.setHeader('Content-Disposition', `inline; filename="${name}"`);
-    return data.pipe(res);
+    try {
+      const data = await this.azureService.readStream(
+        name,
+        participantId,
+        req.user,
+      );
+      res.setHeader('Content-Disposition', `inline; filename="${name}"`);
+      return data.pipe(res);
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'An error occurred while retrieving the company form.',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Delete(':participantId')
@@ -67,8 +76,15 @@ export class AzureController {
   @ApiBearerAuth()
   @UseGuards(AccessTokenGuard)
   async delete(@Query('name') name) {
-    const data = await this.azureService.delete(name);
-    return data;
+    try {
+      const data = await this.azureService.delete(name);
+      return data;
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'An error occurred while retrieving the company form.',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Get('images')
@@ -82,7 +98,14 @@ export class AzureController {
   @UseGuards(AccessTokenGuard)
   @ApiBearerAuth()
   async readAll() {
-    const data = await this.azureService.readAll();
-    return data.map((data) => data.name);
+    try {
+      const data = await this.azureService.readAll();
+      return data.map((data) => data.name);
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'An error occurred while retrieving the company form.',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }

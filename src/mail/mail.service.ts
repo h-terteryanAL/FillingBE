@@ -123,42 +123,6 @@ export class MailService {
     }
   }
 
-  async sendInvitationEmail(email: string, userName: string): Promise<void> {
-    try {
-      const templatePath = path.join(
-        path.resolve(),
-        '/src/mail/templates/oneTimePass.hbs',
-      );
-
-      const template = fs.readFileSync(templatePath, 'utf-8');
-      const compiledFile = Handlebars.compile(template);
-      const htmlContent = compiledFile({
-        userName,
-        link: this.link,
-      });
-
-      const mail: SendGrid.MailDataRequired = {
-        to: email,
-        from: this.emailFrom,
-        subject: 'Invitation For BOIR',
-        html: htmlContent,
-      };
-
-      const sendgridData = await SendGrid.send(mail);
-      const messageId = sendgridData[0]?.headers['x-message-id'];
-      await this.createEmailData(MessageTypeEnum.OTP, messageId, email);
-    } catch (error) {
-      await this.createErrorData(MessageTypeEnum.OTP, email, error.message);
-      throw new HttpException(
-        {
-          status: error.status || HttpStatus.INTERNAL_SERVER_ERROR,
-          error: error.message || 'An unexpected error occurred',
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
   async alertUserOfExpiringCompany(
     companies: {
       name: string;
@@ -179,7 +143,7 @@ export class MailService {
         try {
           console.log(this.link);
           const htmlContent = compiledFile({
-            fillerFullName: `${company.user.firstName} ${company.user.lastName}`,
+            fillerFullName: `${company.user?.firstName} ${company.user?.lastName}`,
             companyName: company.name,
             remainingDays: remainingDay,
             link: this.link,
@@ -237,10 +201,14 @@ export class MailService {
         subject: 'Expired companies List',
         html: htmlContent,
       };
-  
+
       const sendgridData = await SendGrid.send(mail);
       const messageId = sendgridData[0]?.headers['x-message-id'];
-      await this.createEmailData(MessageTypeEnum.OTP, messageId, this.adminEmail);
+      await this.createEmailData(
+        MessageTypeEnum.OTP,
+        messageId,
+        this.adminEmail,
+      );
     } catch (error) {
       await this.createErrorData(
         MessageTypeEnum.OTP,
@@ -261,7 +229,7 @@ export class MailService {
     userName: string,
     companyName: string,
     email: string,
-    pdf: string
+    pdf: string,
   ) {
     const templatePath = path.join(
       path.resolve(),
@@ -273,7 +241,7 @@ export class MailService {
     const htmlContent = compiledFile({
       userName,
       companyName,
-      pdf
+      pdf,
     });
     try {
       const mail: SendGrid.MailDataRequired = {
@@ -282,16 +250,12 @@ export class MailService {
         subject: 'Company report success',
         html: htmlContent,
       };
-  
+
       const sendgridData = await SendGrid.send(mail);
       const messageId = sendgridData[0]?.headers['x-message-id'];
       await this.createEmailData(MessageTypeEnum.OTP, messageId, email);
     } catch (error) {
-      await this.createErrorData(
-        MessageTypeEnum.OTP,
-        email,
-        error.message,
-      );
+      await this.createErrorData(MessageTypeEnum.OTP, email, error.message);
       throw new HttpException(
         {
           status: error.status || HttpStatus.INTERNAL_SERVER_ERROR,
@@ -302,11 +266,11 @@ export class MailService {
     }
   }
 
-  async sendInvoiceToUser(
+  async sendInvoiceData(
     userName: string,
     companyName: string,
     email: string,
-    invoice: string
+    invoice: string,
   ) {
     const templatePath = path.join(
       path.resolve(),
@@ -318,7 +282,7 @@ export class MailService {
     const htmlContent = compiledFile({
       userName,
       companyName,
-      invoice
+      invoice,
     });
     try {
       const mail: SendGrid.MailDataRequired = {
@@ -327,16 +291,12 @@ export class MailService {
         subject: 'Company paid success',
         html: htmlContent,
       };
-  
+
       const sendgridData = await SendGrid.send(mail);
       const messageId = sendgridData[0]?.headers['x-message-id'];
       await this.createEmailData(MessageTypeEnum.OTP, messageId, email);
     } catch (error) {
-      await this.createErrorData(
-        MessageTypeEnum.OTP,
-        email,
-        error.message,
-      );
+      await this.createErrorData(MessageTypeEnum.OTP, email, error.message);
       throw new HttpException(
         {
           status: error.status || HttpStatus.INTERNAL_SERVER_ERROR,

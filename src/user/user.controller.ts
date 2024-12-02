@@ -1,4 +1,4 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, HttpException, HttpStatus, Param, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -62,6 +62,13 @@ export class UserController {
   @UseGuards(AccessTokenGuard)
   @ApiOperation({ summary: 'Get user company data by userId' })
   async getUserCompanyData(@Param('userId') userId: string) {
-    return this.userService.getUserCompanyData(userId);
+    try {
+      return this.userService.getUserCompanyData(userId);
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'An error occurred while retrieving the company form.',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }

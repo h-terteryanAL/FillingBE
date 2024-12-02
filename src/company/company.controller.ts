@@ -8,6 +8,8 @@ import {
   Delete,
   FileTypeValidator,
   Get,
+  HttpException,
+  HttpStatus,
   Param,
   ParseFilePipe,
   Patch,
@@ -50,13 +52,20 @@ export class CompanyController {
     @Param('userId') userId: string,
     @Req() req: RequestWithUser,
   ) {
-    return {
-      company: await this.companyService.getSubmittedCompanies(
-        req.user,
-        userId,
-      ),
-      message: companyResponseMsgs.companyDataRetrieved,
-    };
+    try {
+      return {
+        company: await this.companyService.getSubmittedCompanies(
+          req.user,
+          userId,
+        ),
+        message: companyResponseMsgs.companyDataRetrieved,
+      };
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'An error occurred while retrieving the company form.',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Get()
@@ -66,10 +75,17 @@ export class CompanyController {
   @ApiForbiddenResponse({ description: companyResponseMsgs.dontHavePermission })
   @ApiOperation({ summary: 'Get all company data(Admin)' })
   async getAllCompanies() {
-    return {
-      companies: await this.companyService.getAllCompanies(),
-      message: companyResponseMsgs.companiesDataRetrieved,
-    };
+    try {
+      return {
+        companies: await this.companyService.getAllCompanies(),
+        message: companyResponseMsgs.companiesDataRetrieved,
+      };
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'An error occurred while retrieving the company form.',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Get(':companyId')
@@ -79,10 +95,17 @@ export class CompanyController {
   @ApiForbiddenResponse({ description: companyResponseMsgs.dontHavePermission })
   @ApiOperation({ summary: 'Get company by entered company Id' })
   async getCompanyById(@Param('companyId') companyId: string) {
-    return {
-      company: await this.companyService.getCompanyById(companyId),
-      message: companyResponseMsgs.companyDataRetrieved,
-    };
+    try {
+      return {
+        company: await this.companyService.getCompanyById(companyId),
+        message: companyResponseMsgs.companyDataRetrieved,
+      };
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'An error occurred while retrieving the company form.',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Get('data/:companyId')
@@ -94,10 +117,20 @@ export class CompanyController {
     @Param('companyId') companyId: string,
     @Req() req: RequestWithUser,
   ) {
-    return {
-      company: await this.companyService.getAllCompanyData(companyId, req.user),
-      message: companyResponseMsgs.companyDataRetrieved,
-    };
+    try {
+      return {
+        company: await this.companyService.getAllCompanyData(
+          companyId,
+          req.user,
+        ),
+        message: companyResponseMsgs.companyDataRetrieved,
+      };
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'An error occurred while retrieving the company form.',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   // @Post()
@@ -147,7 +180,14 @@ export class CompanyController {
     )
     companyFile: Express.Multer.File,
   ) {
-    return this.companyService.addCsvDataIntoDb(companyFile);
+    try {
+      return this.companyService.addCsvDataIntoDb(companyFile);
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'An error occurred while retrieving the company form.',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Delete(':companyId')
@@ -160,13 +200,27 @@ export class CompanyController {
   @ApiForbiddenResponse({ description: companyResponseMsgs.dontHavePermission })
   @ApiOperation({ summary: 'Delete company by companyId (Admin)' })
   async deleteCompany(@Param('companyId') companyId: string) {
-    return this.companyService.deleteCompanyById(companyId);
+    try {
+      return this.companyService.deleteCompanyById(companyId);
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'An error occurred while retrieving the company form.',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Patch('/submit/:companyId')
   @UseGuards(AccessTokenGuard)
   @ApiBearerAuth()
   async submitCompanyBoir(@Param('companyId') companyId: string) {
-    return this.companyService.submitCompanyById(companyId);
+    try {
+      return this.companyService.submitCompanyById(companyId);
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'An error occurred while retrieving the company form.',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }

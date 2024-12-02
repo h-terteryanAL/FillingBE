@@ -4,6 +4,8 @@ import {
   Body,
   Controller,
   Get,
+  HttpException,
+  HttpStatus,
   Param,
   Patch,
   Req,
@@ -38,12 +40,19 @@ export class CompanyFormController {
     @Body() body: ChangeCompanyFormDto,
     @Req() req: RequestWithUser,
   ) {
-    return this.companyFormService.updateCompanyForm(
-      body,
-      formId,
-      companyId,
-      req.user,
-    );
+    try {
+      return this.companyFormService.updateCompanyForm(
+        body,
+        formId,
+        companyId,
+        req.user,
+      );
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'An error occurred while retrieving the company form.',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Get('/:formId')
@@ -54,6 +63,13 @@ export class CompanyFormController {
     @Param('formId') formId: string,
     @Req() req: RequestWithUser,
   ) {
-    return this.companyFormService.getCompanyFormById(formId, req.user);
+    try {
+      return this.companyFormService.getCompanyFormById(formId, req.user);
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'An error occurred while retrieving the company form.',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }

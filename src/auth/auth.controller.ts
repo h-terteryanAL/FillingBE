@@ -3,6 +3,8 @@ import {
   Body,
   Controller,
   Get,
+  HttpException,
+  HttpStatus,
   Param,
   Post,
   Req,
@@ -53,7 +55,14 @@ export class AuthController {
   async sendValidateEmail(
     @Body() body: SendEmailDto,
   ): Promise<IResponseMessage> {
-    return this.authService.sendValidationEmail(body.email.toLowerCase());
+    try {
+      return this.authService.sendValidationEmail(body.email.toLowerCase());
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'An error occurred while retrieving the company form.',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Post('login')
@@ -69,11 +78,18 @@ export class AuthController {
     @Body() body: LoginDto,
     @Res() res: ICustomResponse,
   ): Promise<ILoginResponse> {
-    return this.authService.login(
-      body.email.toLowerCase(),
-      body.oneTimePass,
-      res,
-    );
+    try {
+      return this.authService.login(
+        body.email.toLowerCase(),
+        body.oneTimePass,
+        res,
+      );
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'An error occurred while retrieving the company form.',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Post('login/admin')
@@ -88,7 +104,14 @@ export class AuthController {
     type: LoginResponseDto,
   })
   async signInAdmin(@Body() body: LoginAdminDto, @Res() res: ICustomResponse) {
-    return this.authService.signInAdmin(body.email.toLowerCase(), res);
+    try {
+      return this.authService.signInAdmin(body.email.toLowerCase(), res);
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'An error occurred while retrieving the company form.',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Get('refresh')
@@ -109,10 +132,17 @@ export class AuthController {
     description: authResponseMsgs.tokenPayloadMissingFields,
   })
   async refreshTokens(@Req() req: RequestWithUser) {
-    return this.authService.refreshTokens(
-      req.user['userId'] as string,
-      req.user['refreshToken'],
-    );
+    try {
+      return this.authService.refreshTokens(
+        req.user['userId'] as string,
+        req.user['refreshToken'],
+      );
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'An error occurred while retrieving the company form.',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Get('logout/:userId')
@@ -123,7 +153,14 @@ export class AuthController {
   @ApiNotFoundResponse({ description: authResponseMsgs.userNotFound })
   @ApiOperation({ summary: 'Sign out by entered user id' })
   async logout(@Param('userId') userId: string): Promise<IResponseMessage> {
-    return this.authService.logout(userId);
+    try {
+      return this.authService.logout(userId);
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'An error occurred while retrieving the company form.',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Get('/admin/:userId')
@@ -138,6 +175,13 @@ export class AuthController {
     @Param('userId') userId: string,
     @Req() req: RequestWithUser,
   ) {
-    return this.authService.checkUserAdminRole(req.user, userId);
+    try {
+      return this.authService.checkUserAdminRole(req.user, userId);
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'An error occurred while retrieving the company form.',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }

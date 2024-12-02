@@ -3,17 +3,16 @@ import {
   Controller,
   Get,
   HttpCode,
+  HttpException,
   HttpStatus,
   Param,
   Post,
-  Res,
-  UploadedFile,
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes, ApiParam, ApiTags } from '@nestjs/swagger';
 import { GovernmentService } from './government.service';
-import { FilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('government')
 @ApiTags('government')
@@ -29,9 +28,15 @@ export class GovernmentController {
   async handleGetProcessId(
     @Param('companyId') companyId: string,
   ): Promise<void> {
-    await this.governmentService.getProcessId(companyId);
+    try {
+      await this.governmentService.getProcessId(companyId);
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'An error occurred while retrieving the company form.',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
-
 
   @Post('sendAttachments/:companyId')
   @UseInterceptors(FilesInterceptor('files'))
@@ -54,20 +59,41 @@ export class GovernmentController {
     @Param('companyId') companyId: string,
     @UploadedFiles() files: Array<Express.Multer.File>,
   ) {
-    const result = files.map(async (file) => {
-      return await this.governmentService.sendAttachment(companyId, file);
-    });
-    return result;
+    try {
+      const result = files.map(async (file) => {
+        return await this.governmentService.sendAttachment(companyId, file);
+      });
+      return result;
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'An error occurred while retrieving the company form.',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Post('send-companies')
   @HttpCode(HttpStatus.OK)
   async handleSendDataToGovernment(@Body() companies: string[]): Promise<void> {
-    await this.governmentService.sendCompanyDataToGovernment(companies);
+    try {
+      await this.governmentService.sendCompanyDataToGovernment(companies);
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'An error occurred while retrieving the company form.',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Get('checkStatus/:companyId')
   async checkCompanyStatus(@Param('companyId') companyId: string) {
-    return this.governmentService.checkGovernmentStatus(companyId);
+    try {
+      return this.governmentService.checkGovernmentStatus(companyId);
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'An error occurred while retrieving the company form.',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }
