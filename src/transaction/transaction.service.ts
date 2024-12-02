@@ -183,12 +183,12 @@ export class TransactionService {
         await company.populate({ path: 'user', model: 'User' });
         const fullname = `${company.user.firstName} ${company.user.lastName}`;
 
-        await this.mailService.sendInvoiceData(
-          fullname,
-          company.name,
-          company.user.email,
-          paymentIntent.id,
-        );
+        // await this.mailService.sendInvoiceData(
+        //   fullname,
+        //   company.name,
+        //   company.user.email,
+        //   paymentIntent.id,
+        // );
       }),
     );
 
