@@ -5,7 +5,7 @@ import {
   requiredCompanyFields,
 } from '@/company/constants';
 import { ParticipantFormService } from '@/participant-form/participant-form.service';
-import { calculateRequiredFieldsCount } from '@/utils/req-field.util';
+import { calculateRequiredFieldsCount } from '@/utils/util';
 import {
   ConflictException,
   forwardRef,

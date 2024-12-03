@@ -1,4 +1,8 @@
 import { CompanyService } from '@/company/company.service';
+import {
+  GovernmentApiStatusEnum,
+  governmentStatusesAfterProcess,
+} from '@/government/constants/statuses';
 import { GovernmentService } from '@/government/government.service';
 import { MailService } from '@/mail/mail.service';
 import { forwardRef, Inject, NotFoundException } from '@nestjs/common';
@@ -21,9 +25,9 @@ export class TransactionService {
     @InjectModel(Transaction.name)
     private transactionModel: Model<TransactionDocument>,
     @Inject(forwardRef(() => CompanyService))
-    private readonly mailService: MailService,
     private readonly companyService: CompanyService,
     private readonly governmentService: GovernmentService,
+    private readonly mailService: MailService,
   ) {
     this.stripe = new Stripe(this.apiKey, {
       apiVersion: '2024-09-30.acacia',
@@ -177,11 +181,50 @@ export class TransactionService {
     );
 
     await this.governmentService.sendCompanyDataToGovernment(companyIds);
+
     Promise.all(
       companyIds.map(async (companyId: string) => {
         const company = await this.companyService.getCompanyById(companyId);
         await company.populate({ path: 'user', model: 'User' });
         const fullname = `${company.user.firstName} ${company.user.lastName}`;
+
+        const intervalId = setInterval(
+          async () => {
+            try {
+              const data =
+                await this.governmentService.checkGovernmentStatus(companyId);
+
+              if (
+                governmentStatusesAfterProcess.includes(
+                  data.status.submissionStatus,
+                )
+              ) {
+                const fullname = `${data.status.firstName} ${data.status.lastName}`;
+
+                if (data?.pdfBinary) {
+                  await this.mailService.sendPDFtoUsers(
+                    fullname,
+                    company.name,
+                    data.status.email,
+                    data.pdfBinary,
+                  );
+                }
+                clearInterval(intervalId);
+              } else if (
+                data.status.submissionStatus ===
+                GovernmentApiStatusEnum.submission_initiated
+              ) {
+              } else {
+                clearInterval(intervalId);
+                throw new Error('something is wrong');
+              }
+            } catch (error) {
+              console.error('Error while making request:', error);
+              clearInterval(intervalId);
+            }
+          },
+          5 * 60 * 1000,
+        );
 
         // await this.mailService.sendInvoiceData(
         //   fullname,

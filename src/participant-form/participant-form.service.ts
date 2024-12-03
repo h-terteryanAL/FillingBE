@@ -11,7 +11,7 @@ import {
   UNITED_STATES,
 } from '@/company/constants';
 import { CompanyDocument } from '@/company/schemas/company.schema';
-import { calculateRequiredFieldsCount } from '@/utils/req-field.util';
+import { calculateRequiredFieldsCount } from '@/utils/util';
 import {
   BadRequestException,
   ConflictException,

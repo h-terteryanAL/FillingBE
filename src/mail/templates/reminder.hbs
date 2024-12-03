@@ -2,7 +2,7 @@
   <head>
     <meta charset='UTF-8' />
     <meta name='viewport' content='width=device-width, initial-scale=1.0' />
-    <title>Invitation Email</title>
+    <title>Weekly Reminder: Update Your Company Data</title>
     <link rel='preconnect' href='https://fonts.googleapis.com' />
     <link rel='preconnect' href='https://fonts.gstatic.com' crossorigin />
     <link
@@ -20,22 +20,20 @@
       cellpadding='0'
       cellspacing='0'
       border='0'
-      style='background-color: #f3f6f9; margin-top: 145px; margin-bottom: 91px; max-width: 765px; width: 90%; margin-left: auto; margin-right: auto; border-radius: 10px;'
+      style='background-color: #fffae5; max-width: 765px; width: 90%; margin: 100px auto; border-radius: 10px;'
     >
       <tr>
         <td align='center' style='padding: 50px 0 12px;'>
           <img
-            src='https://res.cloudinary.com/dr9wbnpyk/image/upload/v1727077815/email_ta5ibc.png'
-            alt='email'
-            style='width: 194px; height: 194px; object-fit: cover;'
+            src='https://res.cloudinary.com/dr9wbnpyk/image/upload/v1727077815/warning_icon.png'
+            alt='reminder'
+            style='width: 150px; height: 150px; object-fit: cover;'
           />
         </td>
       </tr>
 
       <tr>
-        <td
-          style='padding-left: 50px; padding-right: 50px; padding-bottom: 50px;'
-        >
+        <td style='padding: 0 50px 50px;'>
           <table
             role='presentation'
             width='100%'
@@ -46,44 +44,35 @@
             <tr>
               <td
                 align='center'
-                style='font-size: 26px; line-height: 39px; font-weight: 600; color: #004195; padding-bottom: 36px;'
+                style='font-size: 26px; line-height: 39px; font-weight: 600; color: #d9534f; padding-bottom: 20px;'
               >
-                Important Action Required
+                Reminder: Weekly Update Required for Your Company Data
               </td>
             </tr>
             <tr>
               <td
-                style='font-size: 18px; font-weight: 600; line-height: 27px; color: #004195; text-align: left; padding-bottom: 24px;'
+                style='font-size: 18px; font-weight: 600; line-height: 27px; color: #333; text-align: left; padding-bottom: 24px;'
               >
                 Dear
-                {{fullName}},
+                {{fillerFullName}},
               </td>
             </tr>
             <tr>
               <td
-                style='font-size: 18px; font-weight: 400; line-height: 27px; color: #616e7c; text-align: left; padding-bottom: 36px;'
+                style='font-size: 18px; font-weight: 400; line-height: 27px; color: #555; text-align: left; padding-bottom: 36px;'
               >
-                You have been invited to fill out the Beneficial Ownership
+                This is your weekly reminder to update the Beneficial Ownership
                 Information Report (BOIR) for
-                <strong>{{companyNames}}</strong>. Please complete the required
-                information to comply with regulatory requirements.
+                <strong>{{companyName}}</strong>.
+                <br />
+                Please ensure your company data is accurate and up to date.
               </td>
             </tr>
             <tr>
               <td
-                style='font-size: 18px; font-weight: 400; line-height: 27px; color: #616e7c; text-align: left; padding-bottom: 24px;'
+                style='font-size: 18px; font-weight: 400; line-height: 27px; color: #555; text-align: left; padding-bottom: 24px;'
               >
-                Your prompt attention is essential to avoid any delays in
-                processing the report.
-              </td>
-            </tr>
-            <tr>
-              <td
-                style='font-size: 18px; font-weight: 400; line-height: 27px; color: #616e7c; text-align: left; padding-bottom: 24px;'
-              >
-                Please follow the link below to begin filling out the required
-                details for
-                <strong>{{companyNames}}</strong>:
+                Timely updates will help avoid any compliance issues or delays.
               </td>
             </tr>
             <tr>
@@ -96,7 +85,7 @@
                   style='
                     display: inline-block;
                     padding: 11px 44px;
-                    background-color: #004195;
+                    background-color: #d9534f;
                     color: #fff;
                     font-size: 16px;
                     font-weight: 600;
@@ -105,7 +94,7 @@
                     border-radius: 5px;
                   '
                 >
-                  Complete Report
+                  Update Company Data Now
                 </a>
               </td>
             </tr>
@@ -122,14 +111,14 @@
             </tr>
             <tr>
               <td
-                style='font-size: 18px; font-weight: 400; line-height: 27px; color: #616e7c; text-align: left; padding-top: 36px;'
+                style='font-size: 18px; font-weight: 400; line-height: 27px; color: #555; text-align: left; padding-top: 36px;'
               >
                 Thank you for your cooperation.
               </td>
             </tr>
             <tr>
               <td
-                style='font-size: 18px; font-weight: 400; line-height: 27px; color: #616e7c; text-align: left; padding-bottom: 24px;'
+                style='font-size: 18px; font-weight: 400; line-height: 27px; color: #555; text-align: left; padding-bottom: 24px;'
               >
                 Best regards,<br />
                 The BOIR Compliance Team

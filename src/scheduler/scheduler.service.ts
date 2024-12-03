@@ -37,6 +37,11 @@ export class SchedulerService {
         companiesWhichExpired as any,
       );
     }
+
+    const companiesAfterWeek = await this.companyService.getWeeklyReminders();
+    if (companiesAfterWeek.length) {
+      await this.mailService.remindAfterWeek(companiesAfterWeek);
+    }
   }
 
   @Cron(ScheduleTimeENUM.EVERY_YEAR)

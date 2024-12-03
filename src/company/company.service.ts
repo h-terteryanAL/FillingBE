@@ -6,6 +6,7 @@ import { MailService } from '@/mail/mail.service';
 import { ParticipantFormService } from '@/participant-form/participant-form.service';
 import { UserService } from '@/user/user.service';
 import { sanitizeData } from '@/utils/csv-sanitize';
+import { mailDataParser } from '@/utils/util';
 import {
   BadRequestException,
   ForbiddenException,
@@ -97,6 +98,8 @@ export class CompanyService {
     const allReasons = [];
     const allMissingFields = [];
     const companiesResults = [];
+    const companiesEmailData = [];
+
     await Promise.all(
       resultData.map(async (row: ICompanyCSVRowData) => {
         const { sanitized, errorData, reasons, companyDeleted } =
@@ -119,15 +122,27 @@ export class CompanyService {
           );
           if (
             typeof changedCompanyData === 'object' &&
-            Object.keys(changedCompanyData).length
-          )
-            allMissingFields.push(changedCompanyData);
+            Object.keys(changedCompanyData.missingFields).length
+          ) {
+            allMissingFields.push(changedCompanyData.missingFields);
+          }
+
+          if (
+            typeof changedCompanyData === 'object' &&
+            Object.keys(changedCompanyData.userEmailData).length
+          ) {
+            companiesEmailData.push(changedCompanyData.userEmailData);
+          }
         } else {
           companiesResults.push(
             `${sanitized.company.names.legalName || 'Company'} data could not be added due to missing or incorrect information.`,
           );
         }
       }),
+    );
+
+    await this.mailService.sendInvitationEmailToFormFillers(
+      mailDataParser(companiesEmailData),
     );
 
     return {
@@ -208,10 +223,9 @@ export class CompanyService {
     if (user) {
       userEmailData.email = user.email;
       userEmailData.fullName = `${user.firstName} ${user.lastName}`;
-      await this.mailService.sendInvitationEmailToFormFiller(userEmailData);
     }
 
-    return missingFields;
+    return { missingFields, userEmailData };
   }
 
   private async createNewCompanyFromCsv(
@@ -503,6 +517,35 @@ export class CompanyService {
     return companies;
   }
 
+  async getWeeklyReminders() {
+    const now = moment.utc().startOf('day'); 
+    const oneWeekAgoStart = now.clone().subtract(7, 'days'); 
+    const oneWeekAgoEnd = now.clone().subtract(6, 'days'); 
+
+    const companies = await this.companyModel
+      .find(
+        {
+          isPaid: false,
+          createdAt: {
+            $gte: oneWeekAgoStart.toDate(), 
+            $lt: oneWeekAgoEnd.toDate(), 
+          },
+        },
+        {
+          name: 1,
+          createdAt: 1,
+          _id: 0,
+        },
+      )
+      .populate({
+        path: 'user',
+        select: 'firstName lastName email',
+      })
+      .exec();
+
+    return companies;
+  }
+
   async getByParticipantId(
     participantId: string,
     isApplicant: boolean,
@@ -714,10 +757,20 @@ export class CompanyService {
       throw new BadRequestException(companyResponseMsgs.companiesNotSubmitted);
     }
 
+    const getAmount = (index: number) => {
+      if (index < 2) {
+        return 75;
+      } else if (index >= 2 && index < 7) {
+        return 65;
+      } else {
+        return 55;
+      }
+    };
+
     const companiesAndTheirAmount: { name: string; amount: number }[] =
       companies.map((company, index) => ({
         name: company.name,
-        amount: 100 * (index === 1 ? 0.75 : index > 1 ? 0.5 : 1),
+        amount: getAmount(index),
       }));
 
     const totalAmount = companiesAndTheirAmount.reduce((sum, { amount }) => {

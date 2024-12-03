@@ -39,7 +39,11 @@ export class AuthService {
   async sendValidationEmail(email: string): Promise<IResponseMessage> {
     const oneTimePass = Math.floor(100000 + Math.random() * 900000);
     const userName = await this.userService.changeUserOtp(email, oneTimePass);
-    await this.mailerService.sendOTPtoEmail(oneTimePass, email, userName || 'Customer');
+    await this.mailerService.sendOTPtoEmail(
+      oneTimePass,
+      email,
+      userName || 'Customer',
+    );
 
     return { message: authResponseMsgs.otpWasSent };
   }
