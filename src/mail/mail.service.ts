@@ -282,12 +282,12 @@ export class MailService {
     }
   }
 
-  async sendInvoiceData(
-    userName: string,
-    companyName: string,
-    email: string,
-    invoice: string,
-  ) {
+ async sendInvoiceData(userEmailData: {
+    email?: string;
+    companyNames: string[];
+    fullName?: string;
+    invoice?: string;
+  }) {
     const templatePath = path.join(
       path.resolve(),
       '/src/mail/templates/invoice.hbs',
@@ -295,9 +295,10 @@ export class MailService {
 
     const template = fs.readFileSync(templatePath, 'utf-8');
     const compiledFile = Handlebars.compile(template);
+    const { fullName, companyNames, invoice, email } = userEmailData;
     const htmlContent = compiledFile({
-      userName,
-      companyName,
+      fullName,
+      companyNames: companyNames.join(','),
       invoice,
     });
     try {
@@ -322,6 +323,7 @@ export class MailService {
       );
     }
   }
+
 
   async remindAfterWeek(
     companies: {
