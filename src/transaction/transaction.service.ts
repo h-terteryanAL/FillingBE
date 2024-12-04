@@ -171,7 +171,7 @@ export class TransactionService {
     return result;
   }
 
-  async updateTransactionStatus(paymentIntent: any) {
+   async updateTransactionStatus(paymentIntent: any) {
     const transaction = await this.getTransactionByTId(paymentIntent.id);
 
     transaction.status = paymentIntent.status;
@@ -182,7 +182,16 @@ export class TransactionService {
 
     await this.governmentService.sendCompanyDataToGovernment(companyIds);
 
-    Promise.all(
+    const userEmailData: {
+      email?: string;
+      companyNames: string[];
+      invoice?: string;
+      fullName?: string;
+    } = {
+      companyNames: [],
+    };
+
+    await Promise.all(
       companyIds.map(async (companyId: string) => {
         const company = await this.companyService.getCompanyById(companyId);
         await company.populate({ path: 'user', model: 'User' });
@@ -226,14 +235,25 @@ export class TransactionService {
           5 * 60 * 1000,
         );
 
-        // await this.mailService.sendInvoiceData(
-        //   fullname,
-        //   company.name,
-        //   company.user.email,
-        //   paymentIntent.id,
-        // );
+        if (!userEmailData.email) {
+          userEmailData.email = company.user.email;
+        }
+
+        if (!userEmailData.invoice) {
+          userEmailData.invoice = paymentIntent.id;
+        }
+
+        if (company.name) {
+          userEmailData.companyNames.push(company.name);
+        }
+
+        if (!userEmailData.fullName) {
+          userEmailData.fullName = fullname;
+        }
       }),
     );
+
+    await this.mailService.sendInvoiceData(userEmailData);
 
     return { message: transactionMessages.statusChanged };
   }
