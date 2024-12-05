@@ -282,7 +282,7 @@ export class MailService {
     }
   }
 
- async sendInvoiceData(userEmailData: {
+  async sendInvoiceData(userEmailData: {
     email?: string;
     companyNames: string[];
     fullName?: string;
@@ -323,7 +323,6 @@ export class MailService {
       );
     }
   }
-
 
   async remindAfterWeek(
     companies: {

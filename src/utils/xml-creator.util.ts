@@ -491,6 +491,7 @@ function reportCompanyParty(
   }
 
   if (companyForm.repCompanyInfo.requestToReceiveFID) {
+    
     addDataElement(reportCompanyParty, 'RequestFinCENIDIndicator', 'Y');
   }
 

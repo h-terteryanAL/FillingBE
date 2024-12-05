@@ -293,9 +293,9 @@ export class CSVOwnerFormDto extends OwnerFormDto {
 export class CreateParticipantDocDto {
   @IsEnum(DocumentTypeEnum)
   @Transform(({ value }) => AllCountryEnum[value] || value)
-  docType: DocumentTypeEnum;
+  ['identificationDetails.docType']: DocumentTypeEnum;
 
   @IsString()
   @MaxLength(25)
-  docNumber: string;
+  ['identificationDetails.docNumber']: string;
 }

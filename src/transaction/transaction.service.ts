@@ -171,7 +171,7 @@ export class TransactionService {
     return result;
   }
 
-   async updateTransactionStatus(paymentIntent: any) {
+  async updateTransactionStatus(paymentIntent: any) {
     const transaction = await this.getTransactionByTId(paymentIntent.id);
 
     transaction.status = paymentIntent.status;

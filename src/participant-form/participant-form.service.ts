@@ -438,14 +438,7 @@ export class ParticipantFormService {
   async uploadAnImageAndCreate(
     companyId: string,
     docImg: Express.Multer.File,
-    payload: {
-      docNumber: string;
-      docType: string;
-      countryOrJurisdiction?: string;
-      state?: string;
-      localOrTribal?: string;
-      otherLocalOrTribal?: string;
-    },
+    payload: any,
     isApplicant: boolean,
     user: IRequestUser,
   ) {
@@ -455,17 +448,39 @@ export class ParticipantFormService {
       'company',
     );
 
-    const { docNumber, docType } = payload;
+    const payloadKeys = Object.keys(payload);
+    const filteredData: any = {};
+
+    payloadKeys.forEach((keyWithDot) => {
+      if (keyWithDot !== 'docImg') {
+        const [fieldName, fieldKey]: any = keyWithDot.split('.');
+
+        if (!filteredData[fieldName]) {
+          filteredData[fieldName] = { [fieldKey]: payload[keyWithDot] };
+        } else {
+          filteredData[fieldName][fieldKey] = payload[keyWithDot];
+        }
+      }
+    });
+
     const company = await this.companyService.getCompanyById(companyId);
     const docImgName = await this.azureService.uploadImage(docImg);
+    if (filteredData.identificationDetails) {
+      filteredData.identificationDetails.docImg = docImgName;
+    }
+
     const participantIsExist = isApplicant
       ? await this.applicantFormModel.findOne({
-          ['identificationDetails.docNumber']: docNumber,
-          ['identificationDetails.docType']: docType,
+          ['identificationDetails.docNumber']:
+            payload['identificationDetails.docNumber'],
+          ['identificationDetails.docType']:
+            payload['identificationDetails.docNumber'],
         })
       : await this.ownerFormModel.findOne({
-          ['identificationDetails.docNumber']: docNumber,
-          ['identificationDetails.docType']: docType,
+          ['identificationDetails.docNumber']:
+            payload['identificationDetails.docNumber'],
+          ['identificationDetails.docType']:
+            payload['identificationDetails.docNumber'],
         });
 
     if (participantIsExist) {
@@ -478,16 +493,20 @@ export class ParticipantFormService {
       }
     }
 
-    const identificationDetails = { ...payload, docImg: docImgName };
     const createdParticipant = isApplicant
       ? await this.applicantFormModel.create({
-          identificationDetails,
-          answerCount: payload.countryOrJurisdiction ? 4 : 3,
+          ...filteredData,
         })
       : await this.ownerFormModel.create({
-          identificationDetails,
-          answerCount: payload.countryOrJurisdiction ? 4 : 3,
+          ...filteredData,
         });
+
+    createdParticipant.answerCount = await calculateRequiredFieldsCount(
+      createdParticipant,
+      isApplicant ? requiredApplicantFields : requiredOwnerFields,
+    );
+
+    await createdParticipant.save();
 
     company.forms[`${isApplicant ? 'applicants' : 'owners'}`].push(
       createdParticipant['id'],

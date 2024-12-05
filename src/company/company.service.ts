@@ -518,17 +518,17 @@ export class CompanyService {
   }
 
   async getWeeklyReminders() {
-    const now = moment.utc().startOf('day'); 
-    const oneWeekAgoStart = now.clone().subtract(7, 'days'); 
-    const oneWeekAgoEnd = now.clone().subtract(6, 'days'); 
+    const now = moment.utc().startOf('day');
+    const oneWeekAgoStart = now.clone().subtract(7, 'days');
+    const oneWeekAgoEnd = now.clone().subtract(6, 'days');
 
     const companies = await this.companyModel
       .find(
         {
           isPaid: false,
           createdAt: {
-            $gte: oneWeekAgoStart.toDate(), 
-            $lt: oneWeekAgoEnd.toDate(), 
+            $gte: oneWeekAgoStart.toDate(),
+            $lt: oneWeekAgoEnd.toDate(),
           },
         },
         {

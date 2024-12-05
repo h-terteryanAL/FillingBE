@@ -31,7 +31,7 @@ export async function sanitizeData(
       ? new Date(data['BOIR Submission Deadline'][0])
       : null,
   };
- 
+
   const companyKeys = Object.keys(CompanyData) as (keyof typeof CompanyData)[];
   const userKeys = Object.keys(UserData) as (keyof typeof UserData)[];
   const applicantKeys = Object.keys(
@@ -124,9 +124,9 @@ export async function sanitizeData(
 
   if (
     !(
-      sanitized.company.currentCompany.isExistingCompany ||
+      sanitized.company.currentCompany?.isExistingCompany ||
       (sanitized.company.repCompanyInfo &&
-        sanitized.company.repCompanyInfo.foreignPooled)
+        sanitized.company.repCompanyInfo?.foreignPooled)
     )
   ) {
     const applicantCount =
@@ -163,7 +163,7 @@ export async function sanitizeData(
     (data['Owner Document Type']?.filter(Boolean).length ?? 0) +
     (data['Owner FinCEN ID']?.filter(Boolean).length ?? 0);
 
-  const ownerCount = sanitized.company.repCompanyInfo.foreignPooled
+  const ownerCount = sanitized.company.repCompanyInfo?.foreignPooled
     ? 1
     : ownerCountBySanitizedData;
 
