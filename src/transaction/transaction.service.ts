@@ -297,7 +297,7 @@ export class TransactionService {
               clearInterval(intervalId);
             }
           },
-          1 * 60 * 1000,
+          3 * 60 * 1000,
         );
 
         if (!userEmailData.email) {
