@@ -1,6 +1,7 @@
 import { IRequestUser } from '@/auth/interfaces/request.interface';
 import { CompanyFormService } from '@/company-form/company-form.service';
 import { CsvDataService } from '@/csv-data/csv-data.service';
+import { GovernmentApiStatusEnum } from '@/government/constants/statuses';
 import { IUserInvitationEmail } from '@/mail/interfaces/mail.interface';
 import { MailService } from '@/mail/mail.service';
 import { ParticipantFormService } from '@/participant-form/participant-form.service';
@@ -144,7 +145,6 @@ export class CompanyService {
     await this.mailService.sendInvitationEmailToFormFillers(
       mailDataParser(companiesEmailData),
     );
-
     return {
       message: companyResponseMsgs.csvUploadSuccessful,
       errors: allErrors,
@@ -297,7 +297,9 @@ export class CompanyService {
       sanitized.company,
     );
 
-    missingFields.company = companyForm.missingFormData;
+    if (companyForm?.missingFormData?.length) {
+      missingFields.company = companyForm.missingFormData;
+    }
     answerCount += companyForm.answerCount;
 
     company = new this.companyModel({
@@ -914,6 +916,7 @@ export class CompanyService {
         $set: {
           isPaid: false,
           isSubmitted: false,
+          boirSubmissionStatus: GovernmentApiStatusEnum.not_presented,
           expTime: {
             $cond: {
               if: { $ne: ['$expTime', null] },
@@ -1065,6 +1068,18 @@ export class CompanyService {
     }
 
     return company.forms[`${isApplicant ? 'applicants' : 'owners'}`];
+  }
+
+  async changeCompanySubmissionStatus(
+    companyId: string,
+    submissionStatus: any,
+  ) {
+    const company = await this.companyModel.findById(companyId);
+
+    if (company) {
+      company.boirSubmissionStatus = submissionStatus;
+      await company.save();
+    }
   }
   // need some changes after admin part creating
   // async createNewCompany(payload: any) {

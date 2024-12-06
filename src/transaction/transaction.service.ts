@@ -181,7 +181,6 @@ export class TransactionService {
     );
 
     await this.governmentService.sendCompanyDataToGovernment(companyIds);
-
     const userEmailData: {
       email?: string;
       companyNames: string[];
@@ -194,6 +193,11 @@ export class TransactionService {
     await Promise.all(
       companyIds.map(async (companyId: string) => {
         const company = await this.companyService.getCompanyById(companyId);
+        await this.companyService.changeCompanySubmissionStatus(
+          company._id as string,
+          GovernmentApiStatusEnum.submission_initiated,
+        );
+
         await company.populate({ path: 'user', model: 'User' });
         const fullname = `${company.user.firstName} ${company.user.lastName}`;
 
@@ -202,37 +206,98 @@ export class TransactionService {
             try {
               const data =
                 await this.governmentService.checkGovernmentStatus(companyId);
-
+              const fullName = `${data.status.firstName} ${data.status.lastName}`;
+              
               if (
                 governmentStatusesAfterProcess.includes(
                   data.status.submissionStatus,
                 )
               ) {
-                const fullname = `${data.status.firstName} ${data.status.lastName}`;
-
                 if (data?.pdfBinary) {
                   await this.mailService.sendPDFtoUsers(
-                    fullname,
+                    fullName,
                     company.name,
                     data.status.email,
                     data.pdfBinary,
                   );
                 }
+
+                if (
+                  data.status.submissionStatus ===
+                  GovernmentApiStatusEnum.submission_accepted
+                ) {
+                  await this.mailService.notifyAdminAboutCompanySubmissionStatus(
+                    company.name,
+                    fullName,
+                    true,
+                  );
+                }
+
+                if (
+                  data.status.submissionStatus ===
+                  GovernmentApiStatusEnum.submission_rejected
+                ) {
+                  await this.mailService.notifyUserAboutFail(
+                    company.name,
+                    fullName,
+                    data.status.email,
+                  );
+                  await this.mailService.notifyAdminAboutCompanySubmissionStatus(
+                    company.name,
+                    fullName,
+                    false,
+                  );
+                }
+
+                if (data.status.submissionStatus) {
+                  await this.companyService.changeCompanySubmissionStatus(
+                    company._id as string,
+                    data.status.submissionStatus,
+                  );
+                }
+
                 clearInterval(intervalId);
               } else if (
-                data.status.submissionStatus ===
-                GovernmentApiStatusEnum.submission_initiated
+                !(
+                  data.status.submissionStatus ===
+                    GovernmentApiStatusEnum.submission_initiated &&
+                  data.status.submissionStatus ===
+                    GovernmentApiStatusEnum.not_presented
+                )
               ) {
-              } else {
                 clearInterval(intervalId);
+
+                await this.companyService.changeCompanySubmissionStatus(
+                  company._id as string,
+                  GovernmentApiStatusEnum.submission_failed,
+                );
+
+                await this.mailService.notifyAdminAboutCompanySubmissionStatus(
+                  company.name,
+                  fullName,
+                  false,
+                );
+
                 throw new Error('something is wrong');
               }
             } catch (error) {
               console.error('Error while making request:', error);
+
+              await this.companyService.changeCompanySubmissionStatus(
+                company._id as string,
+                GovernmentApiStatusEnum.submission_failed,
+              );
+
+              await this.mailService.notifyAdminAboutCompanySubmissionStatus(
+                company.name,
+                'Customer',
+                false,
+              );
+
               clearInterval(intervalId);
             }
           },
-          5 * 60 * 1000,
+          1 * 60 * 1000,
         );
 
         if (!userEmailData.email) {

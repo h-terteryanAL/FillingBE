@@ -1,125 +1,141 @@
-<html lang='en'>
+<html lang="en">
   <head>
-    <meta charset='UTF-8' />
-    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Expiration Warning Notification</title>
-    <link rel='preconnect' href='https://fonts.googleapis.com' />
-    <link rel='preconnect' href='https://fonts.gstatic.com' crossorigin />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href='https://fonts.googleapis.com/css2?family=Poppins:wght@100;400&display=swap'
-      rel='stylesheet'
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;400&display=swap"
+      rel="stylesheet"
     />
   </head>
 
   <body
-    style='font-family: Poppins, system-ui; margin: 0; padding: 0; box-sizing: border-box;'
+    style="
+      font-family: Poppins, system-ui;
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    "
   >
     <table
-      role='presentation'
-      width='100%'
-      cellpadding='0'
-      cellspacing='0'
-      border='0'
-      style='background-color: #fffae5; max-width: 765px; width: 90%; margin: 100px auto; border-radius: 10px;'
+      role="presentation"
+      width="100%"
+      cellpadding="0"
+      cellspacing="0"
+      border="0"
+      style="
+        background-color: #fffae5;
+        max-width: 765px;
+        width: 90%;
+        margin: 100px auto;
+        border-radius: 10px;
+      "
     >
       <tr>
-        <td align='center' style='padding: 50px 0 12px;'>
+        <td align="center" style="padding: 50px 0 12px">
           <img
-            src='https://res.cloudinary.com/dr9wbnpyk/image/upload/v1727077815/warning_icon.png'
-            alt='warning'
-            style='width: 150px; height: 150px; object-fit: cover;'
+            src="https://cdn0.iconfinder.com/data/icons/shift-free/32/Error-512.png"
+            alt="warning"
+            style="width: 150px; height: 150px; object-fit: cover"
           />
         </td>
       </tr>
 
       <tr>
-        <td style='padding: 0 50px 50px;'>
+        <td style="padding: 0 50px 50px">
           <table
-            role='presentation'
-            width='100%'
-            border='0'
-            cellpadding='0'
-            cellspacing='0'
+            role="presentation"
+            width="100%"
+            border="0"
+            cellpadding="0"
+            cellspacing="0"
           >
             <tr>
               <td
-                align='center'
-                style='font-size: 26px; line-height: 39px; font-weight: 600; color: #d9534f; padding-bottom: 20px;'
+                align="center"
+                style="
+                  font-size: 26px;
+                  line-height: 39px;
+                  font-weight: 600;
+                  color: #d9534f;
+                  padding-bottom: 20px;
+                "
               >
-                Action Required: Companies expired
+                Companies expired
               </td>
             </tr>
             <tr>
               <td
-                style='font-size: 18px; font-weight: 600; line-height: 27px; color: #333; text-align: left; padding-bottom: 24px;'
+                style="
+                  font-size: 18px;
+                  font-weight: 600;
+                  line-height: 27px;
+                  color: #333;
+                  text-align: left;
+                  padding-bottom: 24px;
+                "
               >
-                Dear Admin,
+                Dear {{adminFullName}},
               </td>
             </tr>
             <tr>
               <td
-                style='font-size: 18px; font-weight: 400; line-height: 27px; color: #555; text-align: left; padding-bottom: 36px;'
+                style="
+                  font-size: 18px;
+                  font-weight: 400;
+                  line-height: 27px;
+                  color: #555;
+                  text-align: left;
+                  padding-bottom: 36px;
+                "
               >
-                This is a reminder that the this companies already expired.
-                {{companies && companies.length && companies.map((company) => (
-                  <strong>{{company.name}}</strong>
-                ))}}
+                This is a reminder that the companies {{companies &&
+                companies.length && companies.map((company) => (
+                <strong>{{company.name}} </strong>
+                ))}} already expired.
               </td>
             </tr>
             <tr>
               <td
-                style='font-size: 18px; font-weight: 400; line-height: 27px; color: #555; text-align: left; padding-bottom: 24px;'
-              >
-                Please contact with owners.
-              </td>
+                style="
+                  font-size: 18px;
+                  font-weight: 400;
+                  line-height: 27px;
+                  color: #555;
+                  text-align: left;
+                  padding-bottom: 24px;
+                "
+              ></td>
             </tr>
             <tr>
               <td
-                align='center'
-                style='padding-top: 16px; padding-bottom: 24px;'
-              >
-                <a
-                  href={{link}}
-                  style='
-                    display: inline-block;
-                    padding: 11px 44px;
-                    background-color: #d9534f;
-                    color: #fff;
-                    font-size: 16px;
-                    font-weight: 600;
-                    text-align: center;
-                    text-decoration: none;
-                    border-radius: 5px;
-                  '
-                >
-                  Go to BOIR
-                </a>
-              </td>
-            </tr>
-            <tr>
-              <td
-                style='font-size: 16px; font-style: italic; font-weight: 400; color: #616e7c; text-align: left;'
-              >
-                If the button above does not work, you can use the following
-                link:
-                <a href={{link}} style='color: #616e7c;'>
-                  {{link}}
-                </a>
-              </td>
-            </tr>
-            <tr>
-              <td
-                style='font-size: 18px; font-weight: 400; line-height: 27px; color: #555; text-align: left; padding-top: 36px;'
+                style="
+                  font-size: 18px;
+                  font-weight: 400;
+                  line-height: 27px;
+                  color: #555;
+                  text-align: left;
+                  padding-top: 36px;
+                "
               >
                 We appreciate your attention to this important matter.
               </td>
             </tr>
             <tr>
               <td
-                style='font-size: 18px; font-weight: 400; line-height: 27px; color: #555; text-align: left; padding-bottom: 24px;'
+                style="
+                  font-size: 18px;
+                  font-weight: 400;
+                  line-height: 27px;
+                  color: #555;
+                  text-align: left;
+                  padding-bottom: 24px;
+                "
               >
                 Best regards,<br />
-                The BOIR Compliance Team
+                The Corpex Team
               </td>
             </tr>
           </table>

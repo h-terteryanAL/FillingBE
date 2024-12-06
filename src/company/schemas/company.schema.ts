@@ -1,4 +1,5 @@
 import { CompanyForm } from '@/company-form/schemas/company-form.schema';
+import { GovernmentApiStatusEnum } from '@/government/constants/statuses';
 import {
   ApplicantForm,
   OwnerForm,
@@ -68,6 +69,9 @@ export class Company {
 
   @Prop({ default: false })
   isExistingCompany: boolean;
+
+  @Prop({ default: GovernmentApiStatusEnum.not_presented })
+  boirSubmissionStatus: GovernmentApiStatusEnum;
 }
 
 export const CompanySchema = SchemaFactory.createForClass(Company);

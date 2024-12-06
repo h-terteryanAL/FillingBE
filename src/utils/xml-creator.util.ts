@@ -253,16 +253,6 @@ function ownerFormParty(activity: any, ownerForm: any, seqNum: number) {
     }
   } else {
     if (
-      ownerForm.beneficialOwner.isParentOrGuard &&
-      !ownerForm.exemptEntity.isExemptEntity
-    ) {
-      addDataElement(
-        ownerFormParty,
-        'ParentOrLegalGuardianForMinorChildIndicator',
-        BOIRBooleanTypeParser(ownerForm.beneficialOwner.isParentOrGuard),
-      );
-    }
-    if (
       !ownerForm.exemptEntity.isExemptEntity &&
       ownerForm.personalInfo.dateOfBirth
     ) {
@@ -270,6 +260,16 @@ function ownerFormParty(activity: any, ownerForm: any, seqNum: number) {
         ownerFormParty,
         'IndividualBirthDateText',
         BOIRDateParser(ownerForm.personalInfo.dateOfBirth),
+      );
+    }
+    if (
+      ownerForm.beneficialOwner.isParentOrGuard &&
+      !ownerForm.exemptEntity.isExemptEntity
+    ) {
+      addDataElement(
+        ownerFormParty,
+        'ParentOrLegalGuardianForMinorChildIndicator',
+        BOIRBooleanTypeParser(ownerForm.beneficialOwner.isParentOrGuard),
       );
     }
     const ownerPartyName = ownerFormParty.ele('fc2:PartyName', {
@@ -491,7 +491,6 @@ function reportCompanyParty(
   }
 
   if (companyForm.repCompanyInfo.requestToReceiveFID) {
-    
     addDataElement(reportCompanyParty, 'RequestFinCENIDIndicator', 'Y');
   }
 

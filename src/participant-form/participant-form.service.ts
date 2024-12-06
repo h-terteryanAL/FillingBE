@@ -81,9 +81,15 @@ export class ParticipantFormService {
 
     if (missingFields) {
       if (!missingFields[isApplicant ? 'applicants' : 'owners']) {
-        missingFields[isApplicant ? 'applicants' : 'owners'] = [
-          await this.getParticipantFormMissingFields(participant, isApplicant),
-        ];
+        const getMissingData = await this.getParticipantFormMissingFields(
+          participant,
+          isApplicant,
+        );
+        if (getMissingData.length) {
+          missingFields[isApplicant ? 'applicants' : 'owners'] = [
+            getMissingData,
+          ];
+        }
       } else {
         missingFields[isApplicant ? 'applicants' : 'owners'].push(
           await this.getParticipantFormMissingFields(participant, isApplicant),

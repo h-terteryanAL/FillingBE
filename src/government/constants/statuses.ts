@@ -4,6 +4,8 @@ export enum GovernmentApiStatusEnum {
   submission_rejected = 'submission_rejected',
   submission_validation_failed = 'submission_validation_failed',
   submission_accepted = 'submission_accepted',
+  submission_failed = 'submission_failed',
+  not_presented = 'not_presented',
 }
 
 export const governmentStatusesAfterProcess = [

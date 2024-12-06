@@ -1,141 +1,142 @@
-<html lang="en">
+<html lang='en'>
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Payment Success Notification</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>Form Submission Failed</title>
+    <link rel='preconnect' href='https://fonts.googleapis.com' />
+    <link rel='preconnect' href='https://fonts.gstatic.com' crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;400&display=swap"
-      rel="stylesheet"
+      href='https://fonts.googleapis.com/css2?family=Poppins:wght@100;400&display=swap'
+      rel='stylesheet'
     />
   </head>
 
   <body
-    style="
+    style='
       font-family: Poppins, system-ui;
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-    "
+    '
   >
     <table
-      role="presentation"
-      width="100%"
-      cellpadding="0"
-      cellspacing="0"
-      border="0"
-      style="
-        background-color: #f9faff;
+      role='presentation'
+      width='100%'
+      cellpadding='0'
+      cellspacing='0'
+      border='0'
+      style='
+        background-color: #fbe9e7;
         max-width: 765px;
         width: 90%;
         margin: 100px auto;
         border-radius: 10px;
-        border: 1px solid #e0e0e0;
-      "
+      '
     >
       <tr>
-        <td align="center" style="padding: 50px 0 12px">
+        <td align='center' style='padding: 50px 0 12px'>
           <img
-            src="https://img.icons8.com/color/96/checkmark--v1.png"
-            alt="success"
-            style="width: 120px; height: 120px; object-fit: cover"
+            src='https://cdn0.iconfinder.com/data/icons/shift-free/32/Error-512.png'
+            alt='error'
+            style='width: 150px; height: 150px; object-fit: cover'
           />
         </td>
       </tr>
 
       <tr>
-        <td style="padding: 0 50px 50px">
+        <td style='padding: 0 50px 50px'>
           <table
-            role="presentation"
-            width="100%"
-            border="0"
-            cellpadding="0"
-            cellspacing="0"
+            role='presentation'
+            width='100%'
+            border='0'
+            cellpadding='0'
+            cellspacing='0'
           >
             <tr>
               <td
-                align="center"
-                style="
+                align='center'
+                style='
                   font-size: 26px;
                   line-height: 39px;
                   font-weight: 600;
-                  color: #4caf50;
+                  color: #d9534f;
                   padding-bottom: 20px;
-                "
+                '
               >
-                Payment Successful!
+                Submission Failed
               </td>
             </tr>
             <tr>
               <td
-                style="
+                style='
                   font-size: 18px;
                   font-weight: 600;
                   line-height: 27px;
                   color: #333;
                   text-align: left;
                   padding-bottom: 24px;
-                "
+                '
               >
-                Dear {{fullName}},
+                Dear
+                {{fullName}},
               </td>
             </tr>
             <tr>
               <td
-                style="
+                style='
                   font-size: 18px;
                   font-weight: 400;
                   line-height: 27px;
                   color: #555;
                   text-align: left;
                   padding-bottom: 36px;
-                "
+                '
               >
-                We are pleased to inform you that the payment for the following
-                company(ies) has been successfully completed:
-                <strong>{{companyNames}}</strong>.
+                Unfortunately, your recent form for
+                {{companyName}}
+                submission failed.
               </td>
             </tr>
             <tr>
               <td
-                style="
+                style='
+                  font-size: 18px;
+                  font-weight: 400;
+                  line-height: 27px;
+                  color: #555;
+                  text-align: left;
+                  padding-bottom: 36px;
+                '
+              >
+                Please contact the administration for a detailed explanation of
+                the issue and assistance with finding solutions.
+              </td>
+            </tr>
+            <tr>
+              <td
+                style='
                   font-size: 18px;
                   font-weight: 400;
                   line-height: 27px;
                   color: #555;
                   text-align: left;
                   padding-bottom: 24px;
-                "
+                '
               >
-                Attached is the invoice for your reference:<br />
-                {{invoice}}
+                Note: Our admin has been notified of this issue and will review
+                your submission shortly.
               </td>
             </tr>
             <tr>
               <td
-                style="
+                style='
                   font-size: 18px;
                   font-weight: 400;
                   line-height: 27px;
                   color: #555;
                   text-align: left;
                   padding-bottom: 24px;
-                "
-              >
-                Thank you for your prompt payment and continued trust in us.
-              </td>
-            </tr>
-            <tr>
-              <td
-                style="
-                  font-size: 18px;
-                  font-weight: 400;
-                  line-height: 27px;
-                  color: #555;
-                  text-align: left;
-                  padding-bottom: 24px;
-                "
+                '
               >
                 Best regards,<br />
                 The Corpex Team
