@@ -752,6 +752,10 @@ export class ParticipantFormService {
     }
 
     await this.azureService.delete(participant.identificationDetails.docImg);
+    participant.identificationDetails.docImg = undefined;
+    participant.answerCount = participant.answerCount - 1;
+    participant.identificationDetails.isVerified = false;
+    await participant.save();
 
     await this.companyService.changeCompanyCounts(companyId);
 
