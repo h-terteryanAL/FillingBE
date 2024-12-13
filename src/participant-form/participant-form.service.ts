@@ -761,4 +761,40 @@ export class ParticipantFormService {
 
     return { message: 'image deleted' };
   }
+
+  async removeImageFromParticipant(participantId: string) {
+    let participant:
+      | undefined
+      | null
+      | OwnerFormDocument
+      | ApplicantFormDocument;
+    let isApplicant: boolean | undefined;
+
+    participant = await this.ownerFormModel.findById(participantId);
+
+    if (participant) {
+      isApplicant = false;
+    } else {
+      participant = await this.applicantFormModel.findById(participantId);
+      if (participant) {
+        isApplicant = true;
+      }
+    }
+
+    if (!participant) {
+      throw new NotFoundException(participantFormResponseMsgs.formNotFound);
+    }
+
+    participant.identificationDetails.docImg = undefined;
+    participant.answerCount = participant.answerCount - 1;
+    participant.identificationDetails.isVerified = false;
+
+    await participant.save();
+
+    const company = await this.companyService.getByParticipantId(
+      participantId,
+      isApplicant,
+    );
+    if (company) await this.companyService.changeCompanyCounts(company._id);
+  }
 }

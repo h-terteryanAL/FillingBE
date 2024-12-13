@@ -1,5 +1,5 @@
 export enum ExpirationTimes {
-  ACCESS_TOKEN = '1h',
+  ACCESS_TOKEN = '2h',
   REFRESH_TOKEN = '24h',
 }
 

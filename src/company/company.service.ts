@@ -608,7 +608,7 @@ export class CompanyService {
     );
   }
 
-  async changeCompanyCounts(companyId: string): Promise<void> {
+  async changeCompanyCounts(companyId: string | unknown): Promise<void> {
     const company = await this.companyModel.findById(companyId);
 
     if (!company) {

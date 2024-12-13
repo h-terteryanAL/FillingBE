@@ -1,110 +1,114 @@
-<html lang="en">
+<html lang='en'>
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
     <title>Submission Status</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel='preconnect' href='https://fonts.googleapis.com' />
+    <link rel='preconnect' href='https://fonts.gstatic.com' crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;400&display=swap"
-      rel="stylesheet"
+      href='https://fonts.googleapis.com/css2?family=Poppins:wght@100;400&display=swap'
+      rel='stylesheet'
     />
   </head>
 
   <body
-    style="
+    style='
       font-family: Poppins, system-ui;
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-    "
+    '
   >
     <table
-      role="presentation"
-      width="100%"
-      cellpadding="0"
-      cellspacing="0"
-      border="0"
-      style="
+      role='presentation'
+      width='100%'
+      cellpadding='0'
+      cellspacing='0'
+      border='0'
+      style='
         background-color: #fbe9e7;
         max-width: 765px;
         width: 90%;
         margin: 100px auto;
         border-radius: 10px;
-      "
+      '
     >
       <tr>
-        <td align="center" style="padding: 50px 0 12px">
+        <td align='center' style='padding: 50px 0 12px'>
           <img
-            src="https://cdn0.iconfinder.com/data/icons/shift-free/32/Error-512.png"
-            alt="error"
-            style="width: 150px; height: 150px; object-fit: cover"
+            src='https://cdn0.iconfinder.com/data/icons/shift-free/32/Error-512.png'
+            alt='error'
+            style='width: 150px; height: 150px; object-fit: cover'
           />
         </td>
       </tr>
 
       <tr>
-        <td style="padding: 0 50px 50px">
+        <td style='padding: 0 50px 50px'>
           <table
-            role="presentation"
-            width="100%"
-            border="0"
-            cellpadding="0"
-            cellspacing="0"
+            role='presentation'
+            width='100%'
+            border='0'
+            cellpadding='0'
+            cellspacing='0'
           >
             <tr>
               <td
-                align="center"
-                style="
+                align='center'
+                style='
                   font-size: 26px;
                   line-height: 39px;
                   font-weight: 600;
                   color: #d9534f;
                   padding-bottom: 20px;
-                "
+                '
               >
                 Submission Failed
               </td>
             </tr>
             <tr>
               <td
-                style="
+                style='
                   font-size: 18px;
                   font-weight: 600;
                   line-height: 27px;
                   color: #333;
                   text-align: left;
                   padding-bottom: 24px;
-                "
+                '
               >
-                Dear {{adminFullName}},
+                Dear
+                {{adminFullName}},
               </td>
             </tr>
             <tr>
               <td
-                style="
+                style='
                   font-size: 18px;
                   font-weight: 400;
                   line-height: 27px;
                   color: #333;
                   text-align: left;
                   padding-bottom: 24px;
-                "
+                '
               >
-                The form for <strong>{{companyName}}</strong> submitted by
-                <strong>{{fullName}}</strong> failed to pass the review process.
+                The form for
+                <strong>{{companyName}}</strong>
+                submitted by
+                <strong>{{fullName}}</strong>
+                failed to pass the review process.
               </td>
             </tr>
             <tr>
               <td
-                style="
+                style='
                   font-size: 18px;
                   font-weight: 400;
                   line-height: 27px;
                   color: #555;
                   text-align: left;
                   padding-bottom: 24px;
-                "
+                '
               >
                 Please contact the submitter for further clarification and take
                 necessary action to resolve the issue.
@@ -112,14 +116,14 @@
             </tr>
             <tr>
               <td
-                style="
+                style='
                   font-size: 18px;
                   font-weight: 400;
                   line-height: 27px;
                   color: #555;
                   text-align: left;
                   padding-bottom: 24px;
-                "
+                '
               >
                 Best regards,<br />
                 The Corpex Team

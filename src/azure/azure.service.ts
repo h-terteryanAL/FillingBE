@@ -1,5 +1,6 @@
 import { IRequestUser } from '@/auth/interfaces/request.interface';
 import { CompanyService } from '@/company/company.service';
+import { ParticipantFormService } from '@/participant-form/participant-form.service';
 import { BlobServiceClient, ContainerClient } from '@azure/storage-blob';
 import {
   BadRequestException,
@@ -19,6 +20,8 @@ export class AzureService {
     private containerClient: ContainerClient,
     @Inject(forwardRef(() => CompanyService))
     private readonly companyService: CompanyService,
+    @Inject(forwardRef(() => ParticipantFormService))
+    private readonly participantService: ParticipantFormService,
   ) {
     this.connectionString = this.configService.get<string>(
       'AZURE.connectionString',
@@ -77,6 +80,10 @@ export class AzureService {
       return blobDownload.readableStreamBody;
     } catch (error) {
       console.error('err', error);
+
+      if (participantId) {
+       await this.participantService.removeImageFromParticipant(participantId)
+      }
       throw new NotFoundException('Image not found');
     }
   }
