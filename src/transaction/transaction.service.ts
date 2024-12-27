@@ -30,7 +30,7 @@ export class TransactionService {
     private readonly mailService: MailService,
   ) {
     this.stripe = new Stripe(this.apiKey, {
-      apiVersion: '2024-09-30.acacia',
+      apiVersion: '2024-12-18.acacia',
     });
   }
 

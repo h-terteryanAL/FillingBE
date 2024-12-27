@@ -51,7 +51,7 @@
     "passport-local": "^1.0.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
-    "stripe": "^17.1.0",
+    "stripe": "^17.5.0",
     "swagger-ui-express": "^5.0.1",
     "xmlbuilder2": "^3.1.1"
   },
