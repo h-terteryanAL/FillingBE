@@ -17,8 +17,6 @@ export const BOIRDateParser = (date) => {
   return `${year}${month}${day}`;
 };
 
-export const BOIRBooleanTypeParser = (value: boolean) => (value ? 'Y' : 'F');
-
 export const BOIRParticipantDocTypeParser = (type) => {
   switch (type) {
     case "State issued driver's license":

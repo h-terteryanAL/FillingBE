@@ -10,22 +10,18 @@ export const requiredCompanyFields = [
   'address.zipCode',
 ];
 
-export const requiredOwnerFieldWhichExemptEntity = [
-  'personalInfo.lastOrLegalName',
-];
+export const requiredOwnerFieldWhichExemptEntity = [];
 
 export const requiredOwnerFields = [
   'address.address',
   'address.city',
   'address.countryOrJurisdiction',
   'address.postalCode',
+  'personalInfo.lastOrLegalName',
   'personalInfo.firstName',
   'personalInfo.dateOfBirth',
   'identificationDetails.docType',
   'identificationDetails.docNumber',
   'identificationDetails.countryOrJurisdiction',
   'identificationDetails.docImg',
-  ...requiredOwnerFieldWhichExemptEntity,
 ];
-
-export const requiredApplicantFields = [...requiredOwnerFields, 'address.type'];

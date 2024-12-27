@@ -2,7 +2,7 @@ import { CompanyService } from '@/company/company.service';
 import {
   GovernmentApiStatusEnum,
   governmentStatusesAfterProcess,
-} from '@/government/constants/statuses';
+} from '@/government/constants';
 import { GovernmentService } from '@/government/government.service';
 import { MailService } from '@/mail/mail.service';
 import { forwardRef, Inject, NotFoundException } from '@nestjs/common';
@@ -30,7 +30,7 @@ export class TransactionService {
     private readonly mailService: MailService,
   ) {
     this.stripe = new Stripe(this.apiKey, {
-      apiVersion: '2024-09-30.acacia',
+      apiVersion: '2024-12-18.acacia',
     });
   }
 
@@ -239,7 +239,7 @@ export class TransactionService {
                 ) {
                   await this.mailService.notifyUserAboutFail(
                     company.name,
-                    
+
                     fullName,
                     data.status.email,
                   );

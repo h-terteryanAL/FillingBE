@@ -1,5 +1,5 @@
-export { applicantFormFields, ownerFormFields } from './participant-fields';
-type ParticipantFormResponseKeys =
+export { ownerFormFields } from './owner-fields';
+type OwnerFormResponseKeys =
   | 'formNotFound'
   | 'changed'
   | 'deleted'
@@ -8,10 +8,7 @@ type ParticipantFormResponseKeys =
   | 'retrieved'
   | 'failed';
 
-export const participantFormResponseMsgs: Record<
-  ParticipantFormResponseKeys,
-  string
-> = {
+export const ownerFormResponseMsgs: Record<OwnerFormResponseKeys, string> = {
   formNotFound: 'Form not found',
   changed: 'Data was changed',
   deleted: 'Form successfully deleted',

@@ -1,6 +1,6 @@
 export { ICompanyCSVRowData } from './company-csv.interface';
 export {
   ICompanyData,
-  IParticipantData,
+  IOwnerData,
   ISanitizedData,
 } from './sanitized-data.interface';

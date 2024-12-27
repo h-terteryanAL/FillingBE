@@ -1,7 +1,7 @@
 export interface ISanitizedData {
   user: ICsvUser;
   company: ICompanyData;
-  participants: IParticipantData[];
+  owners: IOwnerData[];
   BOIRExpTime: Date;
 }
 
@@ -38,16 +38,11 @@ interface IRepCompanyInfo {
   foreignPooled?: boolean;
 }
 
-export interface IParticipantData {
-  isApplicant: boolean;
-  finCENID?: {
-    finCENID: string;
-  };
+export interface IOwnerData {
   personalInfo?: IPersonalInfo;
   address?: IAddress;
   identificationDetails: IIdentificationDetails;
   beneficialOwner?: IBeneficialOwner;
-  exemptEntity?: IExemptEntity;
 }
 
 interface IPersonalInfo {
@@ -79,8 +74,4 @@ interface IIdentificationDetails {
 
 interface IBeneficialOwner {
   isParentOrGuard: boolean;
-}
-
-interface IExemptEntity {
-  isExemptEntity: boolean;
 }

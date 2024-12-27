@@ -40,5 +40,4 @@ export interface IChangeCompanyForm {
   formationJurisdiction?: IJurisdictionOfFormation;
   taxInfo?: ITaxInformation;
   address?: ICompanyAddress;
-  currentCompany?: { isExistingCompany: boolean };
 }

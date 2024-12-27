@@ -27,7 +27,7 @@ import { AzureService } from './azure.service';
 @Controller('azure')
 export class AzureController {
   constructor(private readonly azureService: AzureService) {}
-  @Get('image/:participantId')
+  @Get('image/:ownerId')
   @Header('Content-Type', 'image/png')
   @ApiOperation({ summary: 'Get image from Azure by name' })
   @ApiQuery({
@@ -36,9 +36,9 @@ export class AzureController {
     description: 'Name of the image file in Azure',
   })
   @ApiParam({
-    name: 'participantId',
+    name: 'ownerId',
     required: true,
-    description: 'participant Id',
+    description: 'owner Id',
   })
   @ApiResponse({ status: 200, description: 'Returns an image stream' })
   @UseGuards(AccessTokenGuard)
@@ -47,14 +47,10 @@ export class AzureController {
     @Res() res: any,
     @Query('name') name: string,
     @Req() req: RequestWithUser,
-    @Param('participantId') participantId: string,
+    @Param('ownerId') ownerId: string,
   ) {
     try {
-      const data = await this.azureService.readStream(
-        name,
-        participantId,
-        req.user,
-      );
+      const data = await this.azureService.readStream(name, ownerId, req.user);
       res.setHeader('Content-Disposition', `inline; filename="${name}"`);
       return data.pipe(res);
     } catch (error) {
@@ -65,7 +61,7 @@ export class AzureController {
     }
   }
 
-  @Delete(':participantId')
+  @Delete(':ownerId')
   @ApiOperation({ summary: 'Delete image from Azure by name' })
   @ApiQuery({
     name: 'name',

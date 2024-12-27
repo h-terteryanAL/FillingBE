@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AzureService } from './azure.service';
+import { AzureService } from '../azure.service';
 
 describe('AzureService', () => {
   let service: AzureService;

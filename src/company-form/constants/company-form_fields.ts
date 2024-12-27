@@ -1,8 +1,4 @@
 export const companyFormFields = {
-  repCompanyInfo: {
-    requestToReceiveFID: 'Company Request To Receive Foreign ID',
-    foreignPooled: 'Company Foreign Pooled',
-  },
   names: {
     legalName: 'Company Legal Name',
     altName: 'Company Alternative Name',
@@ -26,6 +22,4 @@ export const companyFormFields = {
     state: 'Company State',
     zipCode: 'Company Zip code',
   },
-  requestToReceiveFID: 'Company Request To Receive Foreign ID',
-  foreignPooled: 'Company Foreign Pooled',
 };

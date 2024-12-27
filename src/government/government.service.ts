@@ -55,12 +55,6 @@ export class GovernmentService {
           )) as any;
           const processId = await this.getProcessId(companyId);
 
-          if (companyData?.forms.applicants.length) {
-            await this.sendCompanyImagesAttachments(
-              companyData.forms.applicants,
-              processId,
-            );
-          }
           if (companyData?.forms.owners.length) {
             await this.sendCompanyImagesAttachments(
               companyData.forms.owners,
@@ -102,15 +96,15 @@ export class GovernmentService {
 
   private async sendCompanyImagesAttachments(formData: any, processId: string) {
     await Promise.all(
-      formData.map(async (applicant) => {
-        if (applicant.identificationDetails.docImg) {
-          const applicantImageData = await this.azureService.readStream(
-            applicant.identificationDetails.docImg,
+      formData.map(async (owner) => {
+        if (owner.identificationDetails.docImg) {
+          const ownerImageData = await this.azureService.readStream(
+            owner.identificationDetails.docImg,
           );
           const binaryImageData = (
-            await this.streamToBinary(applicantImageData)
+            await this.streamToBinary(ownerImageData)
           ).toString('base64');
-          const URIName = encodeURI(applicant.identificationDetails.docImg);
+          const URIName = encodeURI(owner.identificationDetails.docImg);
           await firstValueFrom(
             this.httpService.post(
               `${this.sandboxURL}/attachments/${processId}/${URIName}`,

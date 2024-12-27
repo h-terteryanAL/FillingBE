@@ -1,9 +1,6 @@
 import { CompanyForm } from '@/company-form/schemas/company-form.schema';
-import { GovernmentApiStatusEnum } from '@/government/constants/statuses';
-import {
-  ApplicantForm,
-  OwnerForm,
-} from '@/participant-form/schemas/participant-form.schema';
+import { GovernmentApiStatusEnum } from '@/government/constants';
+import { OwnerForm } from '@/owner-form/schemas/owner-form.schema';
 import { Transaction } from '@/transaction/schemas/transaction.schema';
 import { User } from '@/user/schema/user.schema';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
@@ -15,13 +12,6 @@ export type CompanyDocument = Company & Document;
 class Forms {
   @Prop({ type: MongoSchema.Types.ObjectId, ref: 'CompanyForm' })
   company: CompanyForm;
-
-  @Prop({
-    required: false,
-    type: [MongoSchema.Types.ObjectId],
-    ref: 'ApplicantForm',
-  })
-  applicants: ApplicantForm[];
 
   @Prop({
     type: [MongoSchema.Types.ObjectId],
@@ -67,7 +57,7 @@ export class Company {
   @Prop({ default: [] })
   transactions: Transaction[];
 
-  @Prop({ default: false })
+  @Prop({ default: true })
   isExistingCompany: boolean;
 
   @Prop({ default: GovernmentApiStatusEnum.not_presented })

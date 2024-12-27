@@ -29,23 +29,18 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
-import { participantFormResponseMsgs } from './constants';
-import {
-  ApplicantFormDto,
-  CreateParticipantDocDto,
-} from './dtos/participant-form.dto';
-import { ParticipantFormService } from './participant-form.service';
+import { ownerFormResponseMsgs } from './constants';
+import { CreateParticipantDocDto, OwnerFormDto } from './dtos/owner-form.dto';
+import { OwnerFormService } from './owner-form.service';
 
-@ApiTags('form/applicant')
-@Controller('form/applicant')
-export class ApplicantFormController {
-  constructor(
-    private readonly participantFormService: ParticipantFormService,
-  ) {}
+@ApiTags('form/owner')
+@Controller('form/owner')
+export class OwnerFormController {
+  constructor(private readonly ownerFormService: OwnerFormService) {}
 
-  @Post('/create/:companyId')
+  @Post('create/:companyId')
   @ApiBody({
-    type: ApplicantFormDto,
+    type: OwnerFormDto,
   })
   @ApiParam({
     name: 'companyId',
@@ -53,20 +48,19 @@ export class ApplicantFormController {
     description: 'ID of the company',
   })
   @ApiOperation({
-    summary: 'Create new applicant',
+    summary: 'Create new owner',
   })
   @ApiBearerAuth()
   @UseGuards(AccessTokenGuard)
   async createNewParticipantForm(
-    @Body() payload: ApplicantFormDto,
+    @Body() payload: OwnerFormDto,
     @Req() req: RequestWithUser,
     @Param('companyId') companyId: string,
   ) {
     try {
-      return this.participantFormService.createParticipantForm(
+      return this.ownerFormService.createParticipantForm(
         payload,
         companyId,
-        true,
         req.user,
       );
     } catch (error) {
@@ -77,9 +71,9 @@ export class ApplicantFormController {
     }
   }
 
-  @Patch('/:companyId/:formId')
+  @Patch(':companyId/:formId')
   @ApiOperation({
-    summary: 'Change applicant by formId',
+    summary: 'Change owner by formId',
   })
   @ApiParam({
     name: 'companyId',
@@ -89,23 +83,32 @@ export class ApplicantFormController {
   @ApiParam({
     name: 'formId',
     required: true,
-    description: 'ID of the applicant form',
+    description: 'ID of the owner form',
   })
-  @ApiBody({ type: ApplicantFormDto })
-  @ApiCreatedResponse({ type: ApplicantFormDto })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        docImg: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @ApiCreatedResponse({ type: OwnerFormDto })
   @ApiBearerAuth()
   @UseGuards(AccessTokenGuard)
   async changeParticipantForm(
     @Param('formId') formId: string,
     @Param('companyId') companyId: string,
-    @Body() payload: ApplicantFormDto,
+    @Body() payload: OwnerFormDto,
     @Req() req: RequestWithUser,
   ) {
     try {
-      return this.participantFormService.changeParticipantForm(
+      return this.ownerFormService.changeOwnerForm(
         payload,
         formId,
-        true,
         companyId,
         req.user,
       );
@@ -117,9 +120,9 @@ export class ApplicantFormController {
     }
   }
 
-  @Get('/:formId')
+  @Get(':formId')
   @ApiOperation({
-    summary: 'Get applicant by formId',
+    summary: 'Get owner by formId',
   })
   @ApiBearerAuth()
   @UseGuards(AccessTokenGuard)
@@ -128,11 +131,7 @@ export class ApplicantFormController {
     @Req() req: RequestWithUser,
   ) {
     try {
-      return this.participantFormService.getParticipantFormById(
-        formId,
-        true,
-        req.user,
-      );
+      return this.ownerFormService.getOwnerFormById(formId, req.user);
     } catch (error) {
       throw new HttpException(
         error.message || 'An error occurred while retrieving the company form.',
@@ -143,7 +142,7 @@ export class ApplicantFormController {
 
   @Delete('/:companyId/:formId')
   @ApiOperation({
-    summary: 'Remove applicant by formId',
+    summary: 'Remove owner by formId',
   })
   @ApiParam({
     name: 'companyId',
@@ -161,62 +160,10 @@ export class ApplicantFormController {
     @Req() req: RequestWithUser,
   ) {
     try {
-      return this.participantFormService.deleteParticipantFormById(
+      return this.ownerFormService.deleteOwnerFormById(
         formId,
-        true,
         req.user,
         companyId,
-      );
-    } catch (error) {
-      throw new HttpException(
-        error.message || 'An error occurred while retrieving the company form.',
-        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
-  @Post('uploadAndUpdate/:participantId')
-  @UseInterceptors(FileInterceptor('docImg'))
-  @ApiConsumes('multipart/form-data')
-  @ApiParam({
-    name: 'participantId',
-    required: true,
-    description: 'ID of applicant which doc image will send',
-  })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        docImg: {
-          type: 'string',
-          format: 'binary',
-        },
-      },
-    },
-  })
-  @ApiBearerAuth()
-  @UseGuards(AccessTokenGuard)
-  async uploadAnImageToTheCloudAndUpdate(
-    @Param('participantId') participantId: string,
-    @Param('companyId') companyId: string,
-    @UploadedFile(
-      new ParseFilePipe({
-        fileIsRequired: true,
-        validators: [
-          new FileTypeValidator({ fileType: '.(jpeg|png|jpg)' }),
-          new MaxFileSizeValidator({ maxSize: 4 * 1024 * 1024 }),
-        ],
-      }),
-    )
-    docImg: Express.Multer.File,
-    @Req() req: RequestWithUser,
-  ) {
-    try {
-      return await this.participantFormService.updateDocImageInParticipantForm(
-        participantId,
-        docImg,
-        req.user,
-        true,
       );
     } catch (error) {
       throw new HttpException(
@@ -266,11 +213,60 @@ export class ApplicantFormController {
     @Req() req: RequestWithUser,
   ) {
     try {
-      return await this.participantFormService.uploadAnImageAndCreate(
+      return await this.ownerFormService.uploadAnImageAndCreate(
         companyId,
         docImg,
         payload,
-        true,
+        req.user,
+      );
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'An error occurred while retrieving the company form.',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Post('uploadAndUpdate/:participantId')
+  @UseInterceptors(FileInterceptor('docImg'))
+  @ApiConsumes('multipart/form-data')
+  @ApiParam({
+    name: 'participantId',
+    required: true,
+    description: 'ID of owner which doc image will send',
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        docImg: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @ApiBearerAuth()
+  @UseGuards(AccessTokenGuard)
+  async uploadAnImageToTheCloudAndUpdate(
+    @Param('participantId') participantId: string,
+    @Param('companyId') companyId: string,
+    @UploadedFile(
+      new ParseFilePipe({
+        fileIsRequired: true,
+        validators: [
+          new FileTypeValidator({ fileType: '.(jpeg|png|jpg)' }),
+          new MaxFileSizeValidator({ maxSize: 4 * 1024 * 1024 }),
+        ],
+      }),
+    )
+    docImg: Express.Multer.File,
+    @Req() req: RequestWithUser,
+  ) {
+    try {
+      return await this.ownerFormService.updateDocImageInParticipantForm(
+        participantId,
+        docImg,
         req.user,
       );
     } catch (error) {
@@ -287,19 +283,16 @@ export class ApplicantFormController {
     name: 'companyId',
   })
   @ApiOperation({
-    summary: 'Get all user companies applicant information',
+    summary: 'Get all user companies owner information',
   })
   @ApiOkResponse({
-    description: participantFormResponseMsgs.retrieved,
+    description: ownerFormResponseMsgs.retrieved,
   })
   @UseGuards(AccessTokenGuard)
   @ApiBearerAuth()
-  async getAllCompaniesApplicants(@Param('companyId') companyId: string) {
+  async getAllCompaniesOwners(@Param('companyId') companyId: string) {
     try {
-      return this.participantFormService.getAllCompanyParticipants(
-        true,
-        companyId,
-      );
+      return this.ownerFormService.getAllCompanyOwners(companyId);
     } catch (error) {
       throw new HttpException(
         error.message || 'An error occurred while retrieving the company form.',
@@ -318,7 +311,7 @@ export class ApplicantFormController {
     name: 'companyId',
   })
   @ApiOperation({
-    summary: 'Remove applicant document image',
+    summary: 'Remove owner document image',
   })
   @ApiOkResponse({
     description: 'image deleted',
@@ -331,10 +324,9 @@ export class ApplicantFormController {
     @Req() req: RequestWithUser,
   ) {
     try {
-      return this.participantFormService.removeParticipantDocumentImage(
+      return this.ownerFormService.removeOwnerDocumentImage(
         participantId,
         req.user,
-        true,
         companyId,
       );
     } catch (error) {

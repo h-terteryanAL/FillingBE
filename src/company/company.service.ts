@@ -1,15 +1,16 @@
 import { IRequestUser } from '@/auth/interfaces/request.interface';
 import { CompanyFormService } from '@/company-form/company-form.service';
 import { CsvDataService } from '@/csv-data/csv-data.service';
-import { GovernmentApiStatusEnum } from '@/government/constants/statuses';
+import { GovernmentApiStatusEnum } from '@/government/constants';
 import { IUserInvitationEmail } from '@/mail/interfaces/mail.interface';
 import { MailService } from '@/mail/mail.service';
-import { ParticipantFormService } from '@/participant-form/participant-form.service';
+import { OwnerFormService } from '@/owner-form/owner-form.service';
 import { UserService } from '@/user/user.service';
 import { sanitizeData } from '@/utils/csv-sanitize';
 import { mailDataParser } from '@/utils/util';
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   forwardRef,
   Inject,
@@ -31,7 +32,7 @@ export class CompanyService {
   constructor(
     @InjectModel(Company.name) private companyModel: Model<CompanyDocument>,
     private readonly companyFormService: CompanyFormService,
-    private readonly participantFormService: ParticipantFormService,
+    private readonly ownerFormService: OwnerFormService,
     @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
     private readonly mailService: MailService,
@@ -204,7 +205,7 @@ export class CompanyService {
       company.expTime = sanitized.BOIRExpTime;
     }
 
-    company.reqFieldsCount = this.calculateReqFieldsCount(company);
+    company.reqFieldsCount = company.forms.owners.length * 11 + 9;
 
     const user = await this.userService.findOrCreateUser(
       sanitized.user.email || null,
@@ -244,16 +245,7 @@ export class CompanyService {
       return;
     }
 
-    const isExistingCompany =
-      sanitized.company?.currentCompany?.isExistingCompany;
-    const applicantIsNotRequired =
-      sanitized.company?.currentCompany?.isExistingCompany ||
-      sanitized.company?.repCompanyInfo?.foreignPooled ||
-      false;
-    delete sanitized.company?.currentCompany?.isExistingCompany;
-
     const ownersIds = [];
-    const applicantsIds = [];
     let answerCount = 0;
 
     if (!sanitized.company.names.legalName) {
@@ -265,31 +257,21 @@ export class CompanyService {
       return;
     }
 
-    const participantsData = (
+    const ownersData = (
       await Promise.all(
-        sanitized.participants.map((participant) => {
-          if (
-            !participant.isApplicant ||
-            (participant.isApplicant && !applicantIsNotRequired)
-          ) {
-            return this.participantFormService.createParticipantFormFromCsv(
-              participant,
-              missingFields,
-            );
-          }
+        sanitized.owners.map((participant) => {
+          return this.ownerFormService.createOwnerFormFromCsv(
+            participant,
+            missingFields,
+          );
         }),
       )
     ).filter(Boolean);
 
-    if (participantsData && participantsData.length) {
-      participantsData.forEach((participant) => {
-        if (participant[0]) {
-          applicantsIds.push(participant[1]);
-        } else {
-          ownersIds.push(participant[1]);
-        }
-
-        answerCount += participant[2];
+    if (ownersData && ownersData.length) {
+      ownersData.forEach((participant) => {
+        ownersIds.push(participant[0]);
+        answerCount += participant[1];
       });
     }
 
@@ -303,18 +285,14 @@ export class CompanyService {
     answerCount += companyForm.answerCount;
 
     company = new this.companyModel({
-      isExistingCompany,
       ['forms.company']: companyForm.id,
       name: companyForm.companyName,
       expTime: sanitized.BOIRExpTime,
       ['forms.owners']: ownersIds,
-      ...(applicantIsNotRequired
-        ? {}
-        : { ['forms.applicants']: applicantsIds }),
     });
 
     company.answersCount = answerCount;
-    company.reqFieldsCount = this.calculateReqFieldsCount(company);
+    company.reqFieldsCount = company.forms.owners.length * 11 + 9;
 
     userEmailData.companyName = company.name;
     userEmailData.isNewCompany = true;
@@ -330,68 +308,41 @@ export class CompanyService {
     missingFields: { company?: string[] },
   ) {
     try {
-      const foreignPooled = { isForeignPooled: false };
       await this.companyFormService.updateCompanyForm(
         sanitized.company,
         companyFormId,
         company['id'],
         false,
         missingFields,
-        foreignPooled,
         true,
         company,
       );
 
-      if (foreignPooled.isForeignPooled) {
-        await this.participantFormService.changeForForeignPooled(
-          company,
-          sanitized.participants.find(
-            (participant) => !participant.isApplicant,
-          ),
-          true,
-        );
-      }
+      const ownerPromises = sanitized.owners.map(async (owner) => {
+        const existOwner =
+          await this.ownerFormService.findParticipantFormByDocDataAndIds(
+            owner.identificationDetails.docNumber,
+            owner.identificationDetails.docType,
+            company.forms.owners,
+          );
 
-      const participantPromises = sanitized.participants.map(
-        async (participant) => {
-          const existParticipant = participant.finCENID
-            ? await this.participantFormService.getByFinCENId(
-                participant.finCENID.finCENID,
-                participant.isApplicant,
-              )
-            : await this.participantFormService.findParticipantFormByDocDataAndIds(
-                participant.identificationDetails.docNumber,
-                participant.identificationDetails.docType,
-                participant.isApplicant
-                  ? company.forms.applicants
-                  : company.forms.owners,
-                participant.isApplicant,
-              );
-
-          if (existParticipant) {
-            await this.participantFormService.changeParticipantForm(
-              participant,
-              existParticipant['id'],
-              participant['isApplicant'],
-              company['id'],
-              false,
-              missingFields,
-            );
-          } else {
-            const newParticipant =
-              await this.participantFormService.createParticipantFormFromCsv(
-                participant,
-                missingFields,
-              );
-            // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-            newParticipant[0]
-              ? company.forms.applicants.push(newParticipant[1])
-              : company.forms.owners.push(newParticipant[1]);
-
-            company.answersCount += newParticipant[2];
-          }
-        },
-      );
+        if (existOwner) {
+          await this.ownerFormService.changeOwnerForm(
+            owner,
+            existOwner['id'],
+            company['id'],
+            false,
+            missingFields,
+          );
+        } else {
+          const newOwner = await this.ownerFormService.createOwnerFormFromCsv(
+            owner,
+            missingFields,
+          );
+          company.forms.owners.push(newOwner[0] as any);
+          company.answersCount += newOwner[1];
+        }
+      });
 
       const companyUser = await this.userService.getUserById(
         company.user as unknown as string,
@@ -412,7 +363,7 @@ export class CompanyService {
       userEmailData.companyName = company.name;
       userEmailData.isNewCompany = false;
       company.isSubmitted = false;
-      await Promise.all(participantPromises);
+      await Promise.all(ownerPromises);
 
       return true;
     } catch (error) {
@@ -436,24 +387,11 @@ export class CompanyService {
       throw new NotFoundException(companyResponseMsgs.companyNotFound);
     }
 
-    if (company.forms.applicants && company.forms.applicants.length) {
-      const applicantForms = company.forms.applicants.map(
-        async (applicant) =>
-          await this.participantFormService.deleteParticipantFormById(
-            applicant as unknown as string,
-            true,
-          ),
-      );
-
-      await Promise.all(applicantForms);
-    }
-
     if (company.forms.owners.length) {
       const ownerForms = company.forms.owners.map(
         async (owner) =>
-          await this.participantFormService.deleteParticipantFormById(
+          await this.ownerFormService.deleteOwnerFormById(
             owner as unknown as string,
-            false,
           ),
       );
 
@@ -548,13 +486,9 @@ export class CompanyService {
     return companies;
   }
 
-  async getByParticipantId(
-    participantId: string,
-    isApplicant: boolean,
-  ): Promise<CompanyDocument> {
-    const formType = isApplicant ? 'forms.applicants' : 'forms.owners';
+  async getByOwnerId(ownerId: string): Promise<CompanyDocument> {
     const company = await this.companyModel.findOne({
-      [formType]: participantId,
+      ['forms.owners']: ownerId,
     });
 
     if (!company) {
@@ -567,7 +501,7 @@ export class CompanyService {
   async checkUserCompanyPermission(
     user: IRequestUser,
     fieldId: string,
-    fieldName: 'participantForm' | 'companyForm' | 'company',
+    fieldName: 'ownerForm' | 'companyForm' | 'company',
   ): Promise<void> {
     if (user) {
       const { role, userId } = user;
@@ -576,10 +510,10 @@ export class CompanyService {
       if (role !== 'admin') {
         if (fieldName === 'company') {
           foundCompany = await this.companyModel.findById(fieldId);
-        } else if (fieldName === 'participantForm') {
+        } else if (fieldName === 'ownerForm') {
           foundCompany = await this.companyModel.findOne({
             user: userId,
-            $or: [{ 'forms.applicants': fieldId }, { 'forms.owners': fieldId }],
+            'forms.owners': fieldId,
           });
         } else if (fieldName === 'companyForm') {
           foundCompany = await this.companyModel.findOne({
@@ -595,19 +529,6 @@ export class CompanyService {
     }
   }
 
-  private calculateReqFieldsCount(
-    company: CompanyDocument,
-    countOfExemptEntity?: number,
-  ): number {
-    countOfExemptEntity = countOfExemptEntity ? countOfExemptEntity : 0;
-    return (
-      company.forms.applicants.length * 12 +
-      (company.forms.owners.length - countOfExemptEntity) * 11 +
-      countOfExemptEntity * 1 +
-      9
-    );
-  }
-
   async changeCompanyCounts(companyId: string | unknown): Promise<void> {
     const company = await this.companyModel.findById(companyId);
 
@@ -621,39 +542,14 @@ export class CompanyService {
     });
 
     await company.populate({
-      path: 'forms.applicants',
-      select: 'answerCount -_id',
-    });
-
-    await company.populate({
       path: 'forms.owners',
       select: 'answerCount -_id',
     });
 
-    const applicantIsNotRequired =
-      company.isExistingCompany ||
-      company.forms.company.repCompanyInfo?.foreignPooled;
-
-    let countOfEntityOwners = 0;
-    if (company.forms.owners) {
-      company.forms.owners.forEach((owner) => {
-        if (owner?.exemptEntity?.isExemptEntity) ++countOfEntityOwners;
-      });
-    }
-
-    company.reqFieldsCount = applicantIsNotRequired
-      ? 9 +
-        (company.forms.owners.length - countOfEntityOwners) * 11 +
-        countOfEntityOwners * 1
-      : this.calculateReqFieldsCount(company, countOfEntityOwners);
+    company.reqFieldsCount = 9 + company.forms.owners.length * 11;
 
     let totalCount = 0;
 
-    if (!applicantIsNotRequired) {
-      company.forms.applicants.forEach(
-        (applicant) => (totalCount += applicant.answerCount),
-      );
-    }
     company.forms.owners.forEach((owner) => (totalCount += owner.answerCount));
     totalCount += company.forms.company.answerCount;
     company.answersCount = totalCount;
@@ -665,32 +561,21 @@ export class CompanyService {
     await company.save();
   }
 
-  async getUserCompanyParticipants(companyId: string, isApplicant: boolean) {
+  async getUserCompanyOwners(companyId: string) {
     const company = await this.companyModel.findById(companyId);
 
     if (!company) {
       throw new NotFoundException(companyResponseMsgs.companyNotFound);
     }
 
-    const allParticipants = isApplicant
-      ? company.forms.applicants
-      : company.forms.owners;
+    await company.populate({ path: 'forms.owners', model: 'OwnerForm' });
 
-    if (isApplicant) {
-      await company.populate({
-        path: 'forms.applicants',
-        model: 'ApplicantForm',
-      });
-    } else {
-      await company.populate({ path: 'forms.owners', model: 'OwnerForm' });
-    }
-
-    return allParticipants;
+    return company.forms.owners;
   }
 
   async submitCompanyById(companyId: string) {
     const company = await this.companyModel.findById(companyId).populate({
-      path: 'forms.applicants forms.owners forms.company',
+      path: 'forms.owners forms.company',
     });
     if (!company) {
       throw new NotFoundException(companyResponseMsgs.companyNotFound);
@@ -698,44 +583,6 @@ export class CompanyService {
 
     if (company.reqFieldsCount !== company.answersCount) {
       throw new BadRequestException(companyResponseMsgs.BOIRfieldsMissing);
-    }
-
-    const isAllVerified = (data: any[]) => {
-      return data.every((item) => {
-        return Object.keys(item['_doc']).some((key) => {
-          const field = item['_doc'][key];
-          if (
-            ['_id', '$__', 'createdAt', 'updatedAt'].some(
-              (item) => item === key,
-            )
-          )
-            return true;
-          return (
-            typeof field !== 'object' ||
-            (typeof field.isVerified === 'boolean' && field.isVerified)
-          );
-        });
-      });
-    };
-
-    const allApplicantsVerified = isAllVerified(company.forms.applicants);
-    const allOwnersVerified = isAllVerified(company.forms.owners);
-
-    const isCompanyVerified = Object.keys(company.forms.company['_doc']).every(
-      (key) => {
-        const field = company.forms.company['_doc'][key];
-        if (
-          ['_id', '$__', 'createdAt', 'updatedAt'].some((item) => item === key)
-        )
-          return true;
-        return (
-          typeof field !== 'object' ||
-          (typeof field.isVerified === 'boolean' && field.isVerified)
-        );
-      },
-    );
-    if (!allApplicantsVerified || !allOwnersVerified || !isCompanyVerified) {
-      throw new BadRequestException(companyResponseMsgs.BOIRNotAllVerified);
     }
 
     company.isSubmitted = true;
@@ -825,11 +672,6 @@ export class CompanyService {
         select: '-answerCount -_id -createdAt -updatedAt -__v',
       })
       .populate({
-        path: 'forms.applicants',
-        model: 'ApplicantForm',
-        select: '-answerCount -applicant -_id -createdAt -updatedAt -__v',
-      })
-      .populate({
         path: 'forms.owners',
         model: 'OwnerForm',
         select:
@@ -884,26 +726,6 @@ export class CompanyService {
     return userCompanies;
   }
 
-  async changeExistingCompanyStatus(
-    companyId: string,
-    isExistingCompany: boolean,
-  ) {
-    const company = await this.companyModel.findById(companyId);
-
-    if (!company) {
-      throw new NotFoundException(companyResponseMsgs.companyNotFound);
-    }
-
-    if (company.isExistingCompany === isExistingCompany) {
-      return false;
-    }
-
-    company.isExistingCompany = isExistingCompany;
-    await company.save();
-
-    return true;
-  }
-
   async resetCompaniesStatus(): Promise<void> {
     const currentDate = new Date();
     const oneYearLater = new Date(
@@ -943,42 +765,16 @@ export class CompanyService {
       .populate({
         path: 'forms.company',
         model: 'CompanyForm',
-        select:
-          '-answerCount -_id -createdAt -updatedAt -__v -names.isVerified -formationJurisdiction.isVerified -taxInfo.isVerified -address.isVerified -repCompanyInfo.isVerified ',
+        select: '-answerCount -_id -createdAt -updatedAt -__v',
       })
       .populate({
         path: 'forms.owners',
         model: 'OwnerForm',
-        select:
-          '-answerCount -exemptEntity.isVerified -beneficialOwner.isVerified -address.isVerified -identificationDetails.isVerified -personalInfo.isVerified -_id -createdAt -updatedAt -__v -finCENID.isVerified',
+        select: '-answerCount -_id -createdAt -updatedAt -__v',
       })
       .exec();
 
-    const cleanVerified = (item) => {
-      if (item?.finCENID) {
-        delete item.finCENID.isVerified;
-      }
-    };
-
-    company.forms.owners.forEach(cleanVerified);
-    if (
-      (!company.isExistingCompany ||
-        !company.forms.company.repCompanyInfo.foreignPooled) &&
-      company.forms.applicants.length
-    ) {
-      await company.populate({
-        path: 'forms.applicants',
-        model: 'ApplicantForm',
-        select:
-          '-answerCount -_id -createdAt -updatedAt -__v -address.isVerified -identificationDetails.isVerified -personalInfo.isVerified -finCENID.isVerified',
-      });
-
-      company.forms.applicants.forEach(cleanVerified);
-    }
-
-    const companyData = company.toObject();
-
-    return companyData;
+    return company.toObject();
   }
 
   async changeCompanyName(
@@ -1006,68 +802,29 @@ export class CompanyService {
     await company.save();
   }
 
-  async removeParticipantFromCompany(
-    participantId: string,
-    companyId: string,
-    isApplicant: boolean,
-  ) {
+  async removeOwnerFromCompany(ownerId: string, companyId: string) {
     const company = await this.companyModel.findOne({ _id: companyId });
     if (!company) {
       throw new Error('Company not found');
     }
 
-    if (isApplicant) {
-      const updatedApplicants = company.forms.applicants.filter(
-        (applicant: any) => !applicant.equals(participantId),
-      );
-
-      company.forms.applicants = updatedApplicants;
-      await company.save();
-    } else {
-      const updatedOwners = company.forms.owners.filter(
-        (owner: any) => !owner.equals(participantId),
-      );
-      company.forms.owners = updatedOwners;
-      await company.save();
-
-      await this.changeCompanyCounts(companyId);
-    }
-  }
-
-  async changeCompanyExistingApplicantData(
-    isExistingCompany: boolean,
-    isForeignPooled: boolean,
-    companyId: string,
-  ) {
-    const company = await this.companyModel.findById(companyId);
-    if (isExistingCompany) {
-      company.isExistingCompany = isExistingCompany;
-    }
-
-    if (company.isExistingCompany || isForeignPooled) {
-      const companyApplicants: any = company.forms.applicants;
-      if (companyApplicants.length) {
-        companyApplicants.forEach(async (applicantId: string) => {
-          await this.participantFormService.deleteParticipantFormById(
-            applicantId,
-            true,
-          );
-        });
-      }
-      company.forms.applicants.length = 0;
-    }
-
+    const updatedOwners = company.forms.owners.filter(
+      (owner: any) => !owner.equals(ownerId),
+    );
+    company.forms.owners = updatedOwners;
     await company.save();
+
+    await this.changeCompanyCounts(companyId);
   }
 
-  async getCurrentParticipantForms(companyId: string, isApplicant: boolean) {
+  async getCurrentOwnerForms(companyId: string) {
     const company = await this.companyModel.findById(companyId);
 
     if (!company) {
       throw new NotFoundException(companyResponseMsgs.companyNotFound);
     }
 
-    return company.forms[`${isApplicant ? 'applicants' : 'owners'}`];
+    return company.forms['owners'];
   }
 
   async changeCompanySubmissionStatus(
@@ -1081,25 +838,27 @@ export class CompanyService {
       await company.save();
     }
   }
-  // need some changes after admin part creating
-  // async createNewCompany(payload: any) {
-  //   const existCompanyForm =
-  //     await this.companyFormService.getCompanyFormByTaxData(
-  //       payload.taxIdNumber,
-  //       payload.taxIdType,
-  //     );
 
-  //   if (existCompanyForm) {
-  //     throw new ConflictException(companyResponseMsgs.companyWasCreated);
-  //   }
+  async createNewCompany(payload: any) {
+    const existCompanyForm =
+      await this.companyFormService.getCompanyFormByTaxData(
+        payload.taxIdNumber,
+        payload.taxIdType,
+      );
 
-  //   const newCompanyForm = await this.companyFormService.create(payload);
-  //   const newCompany = new this.companyModel();
-  //   newCompany['forms.company'] = newCompanyForm['id'];
-  //   newCompany['reqFieldsCount'] = 9;
+    if (existCompanyForm) {
+      throw new ConflictException(companyResponseMsgs.companyWasCreated);
+    }
 
-  //   await newCompany.save();
+    const newCompanyForm =
+      await this.companyFormService.createCompanyFormFromCsv(payload);
+    const newCompany = new this.companyModel();
+    newCompany['forms.company'] = newCompanyForm['id'];
+    newCompany['reqFieldsCount'] = 9;
+    newCompany.name = payload.names.legalName;
 
-  //   return { message: companyResponseMsgs.companyCreated };
-  // }
+    await newCompany.save();
+
+    return { message: companyResponseMsgs.companyCreated };
+  }
 }

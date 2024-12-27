@@ -1,15 +1,12 @@
 import { CompanyModule } from '@/company/company.module';
-import { ParticipantFormModule } from '@/participant-form/participant-form.module';
+import { OwnerFormModule } from '@/owner-form/owner-form.module';
 import { BlobServiceClient, ContainerClient } from '@azure/storage-blob';
 import { Module, forwardRef } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AzureService } from './azure.service';
 
 @Module({
-  imports: [
-    forwardRef(() => CompanyModule),
-    forwardRef(() => ParticipantFormModule),
-  ],
+  imports: [forwardRef(() => CompanyModule), forwardRef(() => OwnerFormModule)],
   providers: [
     AzureService,
     {

@@ -1,16 +1,11 @@
 import {
   AllCountryEnum,
-  ApplicantData,
   CompanyData,
   OwnerData,
   StatesEnum,
   UserData,
 } from '@/company/constants';
-import {
-  ICompanyData,
-  IParticipantData,
-  ISanitizedData,
-} from '@/company/interfaces';
+import { ICompanyData, IOwnerData, ISanitizedData } from '@/company/interfaces';
 import { ICsvUser } from '@/company/interfaces/sanitized-data.interface';
 import { clearWrongFields, validateData } from './validator.util';
 
@@ -26,7 +21,7 @@ export async function sanitizeData(
   const sanitized: ISanitizedData = {
     user: {} as ICsvUser,
     company: {} as ICompanyData,
-    participants: [] as IParticipantData[],
+    owners: [] as IOwnerData[],
     BOIRExpTime: data['BOIR Submission Deadline'][0]
       ? new Date(data['BOIR Submission Deadline'][0])
       : null,
@@ -34,9 +29,6 @@ export async function sanitizeData(
 
   const companyKeys = Object.keys(CompanyData) as (keyof typeof CompanyData)[];
   const userKeys = Object.keys(UserData) as (keyof typeof UserData)[];
-  const applicantKeys = Object.keys(
-    ApplicantData,
-  ) as (keyof typeof ApplicantData)[];
   const ownerKeys = Object.keys(OwnerData) as (keyof typeof OwnerData)[];
 
   function convertValue(key: string, value: string) {
@@ -72,7 +64,7 @@ export async function sanitizeData(
   function mapFieldToObject(
     mappedField: string,
     value: string,
-    targetObj: IParticipantData | ICompanyData | ICsvUser,
+    targetObj: IOwnerData | ICompanyData | ICsvUser,
   ) {
     const fieldParts = mappedField.split('.');
     let current = targetObj;
@@ -98,20 +90,6 @@ export async function sanitizeData(
     }
   });
 
-  if (data['Company Formation Date']) {
-    const formationDate = data['Company Formation Date'];
-    const targetDate = new Date('2024-01-01');
-    const date =
-      formationDate instanceof Date ? formationDate : new Date(formationDate);
-    if (!sanitized.company.currentCompany) {
-      sanitized.company.currentCompany = {
-        isExistingCompany: date < targetDate,
-      };
-    } else {
-      sanitized.company.currentCompany.isExistingCompany = date < targetDate;
-    }
-  }
-
   companyKeys.forEach((key) => {
     if (key && typeof data[key] !== 'undefined') {
       const mappedField = CompanyData[key];
@@ -122,117 +100,45 @@ export async function sanitizeData(
     }
   });
 
-  if (
-    !(
-      sanitized.company.currentCompany?.isExistingCompany ||
-      (sanitized.company.repCompanyInfo &&
-        sanitized.company.repCompanyInfo?.foreignPooled)
-    )
-  ) {
-    const applicantCount =
-      (data['Applicant Document Type']?.filter(Boolean).length ?? 0) +
-      (data['Applicant FinCEN ID']?.filter(Boolean).length ?? 0);
-    for (let i = 0; i < applicantCount; i++) {
-      const participant: any = { isApplicant: true };
-      if (
-        data['Applicant FinCEN ID']?.length &&
-        data['Applicant FinCEN ID'][i] !== ''
-      ) {
-        const mappedField = ApplicantData['Applicant FinCEN ID'];
-        const value = data['Applicant FinCEN ID'][i];
-        if (value !== undefined && value !== '') {
-          mapFieldToObject(mappedField, value, participant);
-        }
-      } else {
-        applicantKeys.forEach((key) => {
-          if (key && typeof data[key] !== 'undefined') {
-            const mappedField = ApplicantData[key];
-            const value = data[key][i];
-            if (value !== undefined && value !== '') {
-              mapFieldToObject(mappedField, value, participant);
-            }
-          }
-        });
-      }
-
-      sanitized.participants.push(participant);
-    }
-  }
-
-  const ownerCountBySanitizedData =
-    (data['Owner Document Type']?.filter(Boolean).length ?? 0) +
-    (data['Owner FinCEN ID']?.filter(Boolean).length ?? 0);
-
-  const ownerCount = sanitized.company.repCompanyInfo?.foreignPooled
-    ? 1
-    : ownerCountBySanitizedData;
+  const ownerCount = data['Owner Document Type']?.filter(Boolean).length ?? 0;
 
   for (let i = 0; i < ownerCount; i++) {
-    const participant: any = { isApplicant: false };
+    const participant: any = {};
 
-    if (data['Owner FinCEN ID']?.length && data['Owner FinCEN ID'][i] !== '') {
-      const mappedField = OwnerData['Owner FinCEN ID'];
-      const value = data['Owner FinCEN ID'][i];
-      if (value !== undefined && value !== '') {
-        mapFieldToObject(mappedField, value, participant);
-      }
-    } else if (
-      data['Owner Is Exempt Entity']?.length &&
-      data['Owner Is Exempt Entity'][i] === 'true'
-    ) {
-      if (data['Owner Last or Legal Name'][i]) {
-        const mappedField = OwnerData['Owner Last or Legal Name'];
-        const value = data['Owner Last or Legal Name'][i];
+    ownerKeys.forEach((key) => {
+      if (key && typeof data[key] !== 'undefined') {
+        const mappedField = OwnerData[key];
+        const value = data[key][i];
         if (value !== undefined && value !== '') {
           mapFieldToObject(mappedField, value, participant);
         }
       }
+    });
 
-      if (data['Owner Is Parent or Guardian'][i]) {
-        const mappedField = OwnerData['Owner Is Parent or Guardian'];
-        const value = data['Owner Is Parent or Guardian'][i];
-        if (value !== undefined && value !== '') {
-          mapFieldToObject(mappedField, value, participant);
-        }
-      }
-
-      if (data['Owner Is Exempt Entity'][i]) {
-        const mappedField = OwnerData['Owner Is Exempt Entity'];
-        const value = data['Owner Is Exempt Entity'][i];
-        if (value !== undefined && value !== '') {
-          mapFieldToObject(mappedField, value, participant);
-        }
-      }
-    } else {
-      ownerKeys.forEach((key) => {
-        if (key && typeof data[key] !== 'undefined') {
-          const mappedField = OwnerData[key];
-          const value = data[key][i];
-          if (value !== undefined && value !== '') {
-            mapFieldToObject(mappedField, value, participant);
-          }
-        }
-      });
-    }
-
-    sanitized.participants.push(participant);
+    sanitized.owners.push(participant);
   }
 
   await createCSVData.create(sanitized);
-  const { isDeletedCompany, errorData } = await validateData(sanitized);
+
+  const validatedData = await validateData(sanitized);
+  const { errorData } = validatedData;
+  let isDeletedCompany = validatedData.isDeletedCompany;
   const { reasons, companyDeleted } = await clearWrongFields(sanitized);
 
-  if (
-    ownerCountBySanitizedData !== ownerCount &&
-    ownerCountBySanitizedData > ownerCount
-  ) {
-    reasons.push({
-      fields: ['Company Foreign Pooled'],
-      problemDesc: 'Foreign pooled company need only one owner data',
-      affectedData: [
-        `Other ${ownerCountBySanitizedData - ownerCount} Owners Data`,
-      ],
-    });
+  if (data['Company Formation Date']) {
+    const formationDate = data['Company Formation Date'];
+    const targetDate = new Date('2024-01-01');
+    const date =
+      formationDate instanceof Date ? formationDate : new Date(formationDate);
+
+    if (targetDate < date) {
+      reasons.push({
+        fields: ['All Company Fields'],
+        problemDesc:
+          "Company can't be added because the application works only with existing companies which were added before January 1, 2024.",
+      });
+      if (!isDeletedCompany) isDeletedCompany = true;
+    }
   }
 
   if (isDeletedCompany) {

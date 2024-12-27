@@ -1,17 +1,8 @@
 import { AllCountryEnum, StatesEnum } from '@/company/constants';
 
-export interface IChangeParticipantForm {
-  applicant?: {
-    isExistingCompany?: boolean;
-  };
+export interface IChangeOwnerForm {
   beneficialOwner?: {
     isParentOrGuard?: boolean;
-  };
-  finCENID?: {
-    finCENID?: string;
-  };
-  exemptEntity?: {
-    isExemptEntity?: boolean;
   };
   personalInfo?: {
     lastOrLegalName?: string;
@@ -21,7 +12,6 @@ export interface IChangeParticipantForm {
     dateOfBirth?: Date;
   };
   address?: {
-    type?: 'business' | 'residential';
     address?: string;
     city?: string;
     countryOrJurisdiction?: AllCountryEnum;
@@ -38,19 +28,9 @@ export interface IChangeParticipantForm {
   };
 }
 
-export interface ICreateParticipantForm {
-  isApplicant: boolean;
-  applicant?: {
-    isExistingCompany?: boolean;
-  };
+export interface ICreateOwnerForm {
   beneficialOwner?: {
     isParentOrGuard?: boolean;
-  };
-  finCENID?: {
-    finCENID?: string;
-  };
-  exemptEntity?: {
-    isExemptEntity?: boolean;
   };
   personalInfo?: {
     lastOrLegalName?: string;
@@ -60,7 +40,6 @@ export interface ICreateParticipantForm {
     dateOfBirth?: Date;
   };
   address?: {
-    type?: 'business' | 'residential';
     address?: string;
     city?: string;
     countryOrJurisdiction?: AllCountryEnum;

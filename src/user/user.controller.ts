@@ -1,6 +1,18 @@
-import { Controller, Get, HttpException, HttpStatus, Param, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Delete,
+  Get,
+  HttpException,
+  HttpStatus,
+  Param,
+  Req,
+  UnauthorizedException,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiForbiddenResponse,
+  ApiOkResponse,
   ApiOperation,
   ApiParam,
   ApiTags,
@@ -8,6 +20,7 @@ import {
 import { UserService } from './user.service';
 // import { User } from './schema/user.schema';
 import { AccessTokenGuard } from '@/auth/guards/access-token.guard';
+import { RequestWithUser } from '@/auth/interfaces/request.interface';
 
 @ApiTags('users')
 @Controller('users')
@@ -51,6 +64,35 @@ export class UserController {
   // ) {
   //   await this.userService.addCompaniesToUser(userId, body.companyIds);
   // }
+
+  @Delete(':companyId')
+  @UseGuards(AccessTokenGuard)
+  @ApiBearerAuth()
+  @ApiOkResponse({
+    description: 'company removed from user',
+  })
+  @ApiForbiddenResponse({ description: 'Dont have permission' })
+  @ApiOperation({ summary: 'Delete company by companyId ' })
+  async deleteCompany(
+    @Param('companyId') companyId: string,
+    @Req() req: RequestWithUser,
+  ) {
+    try {
+      if (!req.user) {
+        throw new UnauthorizedException('Unauthorized');
+      }
+
+      return this.userService.removeCompanyFromUser(
+        req.user.userId as string,
+        companyId,
+      );
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'An error occurred while retrieving the company form.',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 
   @Get('company/:userId')
   @ApiParam({

@@ -17,25 +17,6 @@ export interface ICompanyCSVRowData {
   'Company State': string;
   'Company Zip code': string;
   'Company Exists': string;
-  'Applicant FinCEN ID': string;
-  'Applicant Last or Legal Name': string;
-  'Applicant First Name': string;
-  'Applicant Middle Name': string;
-  'Applicant Suffix': string;
-  'Applicant Date of Birth': string;
-  'Applicant Address Type': string;
-  'Applicant Address': string;
-  'Applicant City': string;
-  'Applicant Country/Jurisdiction': string;
-  'Applicant State': string;
-  'Applicant Postal Code': string;
-  'Applicant Document Type': string;
-  'Applicant Document Number': string;
-  'Applicant Document Country/Jurisdiction': string;
-  'Applicant Document State': string;
-  'Applicant Local or Tribal': string;
-  'Applicant Other Local or Tribal Description': string;
-  'Applicant Document Image': string;
   'Owner Is Parent or Guardian': string;
   'Owner Is Exempt Entity': string;
   'Owner FinCEN ID': string;
@@ -55,5 +36,4 @@ export interface ICompanyCSVRowData {
   'Owner Document State': string;
   'Owner Local or Tribal': string;
   'Owner Other Local or Tribal Description': string;
-  'Owner Document Image': string;
 }

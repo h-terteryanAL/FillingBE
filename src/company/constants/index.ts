@@ -1,5 +1,4 @@
 export {
-  BOIRBooleanTypeParser,
   BOIRDateParser,
   BOIRParticipantDocTypeParser,
   BOIRTaxIdTypeParser,
@@ -13,19 +12,13 @@ export {
   UNITED_STATES,
   countriesWithStates,
 } from './country.enum';
-export {
-  ApplicantData,
-  CompanyData,
-  OwnerData,
-  UserData,
-} from './data-fields.enum';
+export { CompanyData, OwnerData, UserData } from './data-fields.enum';
 export {
   DocumentTypeEnum,
   IdentificationTypesEnum,
 } from './document-types.enum';
 export { TribalDataEnum } from './localOrTribal';
 export {
-  requiredApplicantFields,
   requiredCompanyFields,
   requiredOwnerFields,
 } from './required-data-fields';

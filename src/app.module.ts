@@ -13,7 +13,7 @@ import { CsvDataController } from './csv-data/csv-data.controller';
 import { CsvDataModule } from './csv-data/csv-data.module';
 import { GovernmentModule } from './government/government.module';
 import { MailModule } from './mail/mail.module';
-import { ParticipantFormModule } from './participant-form/participant-form.module';
+import { OwnerFormModule } from './owner-form/owner-form.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
 import { SchedulerService } from './scheduler/scheduler.service';
 import { SeederService } from './seeders/admin/admin-seeder.service';
@@ -38,7 +38,7 @@ import { UserModule } from './user/user.module';
     UserModule,
     CompanyFormModule,
     CompanyModule,
-    ParticipantFormModule,
+    OwnerFormModule,
     AuthModule,
     MailModule,
     SchedulerModule.forRoot(),

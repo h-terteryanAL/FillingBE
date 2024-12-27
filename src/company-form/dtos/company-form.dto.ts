@@ -27,25 +27,8 @@ import {
 } from '@/utils/validateCountry.util';
 import { Transform, Type } from 'class-transformer';
 
-class RepCompanyInfoDto {
-  @ApiProperty({ default: false, required: false })
-  @IsOptional()
-  @IsBoolean()
-  requestToReceiveFID?: boolean;
-
-  @ApiProperty({ default: false, required: false })
-  @IsOptional()
-  @IsBoolean()
-  foreignPooled?: boolean;
-
-  @ApiProperty()
-  @IsOptional()
-  @IsBoolean()
-  isVerified?: boolean;
-}
-
 class ExistingCompanyDto {
-  @ApiProperty({ required: true })
+  @ApiProperty({ required: false })
   @IsBoolean()
   isExistingCompany: boolean;
 }
@@ -192,12 +175,6 @@ class TaxInformation {
   isVerified?: boolean;
 }
 export class ChangeCompanyFormDto {
-  @ApiProperty({ type: RepCompanyInfoDto, required: false })
-  @IsOptional()
-  @ValidateNested({ each: true })
-  @Type(() => RepCompanyInfoDto)
-  repCompanyInfo?: RepCompanyInfoDto;
-
   @ApiProperty({ type: LegalAndAltNamesDto, required: false })
   @IsOptional()
   @ValidateNested({ each: true })
@@ -221,20 +198,9 @@ export class ChangeCompanyFormDto {
   @ValidateNested({ each: true })
   @Type(() => CompanyAddressDto)
   address?: CompanyAddressDto;
-
-  @ApiProperty({ type: Boolean, required: false })
-  @IsOptional()
-  @IsBoolean()
-  isExistingCompany: boolean;
 }
 
 export class CreateCompanyFormDto {
-  @ApiProperty({ type: RepCompanyInfoDto, required: false })
-  @IsOptional()
-  @ValidateNested({ each: true })
-  @Type(() => RepCompanyInfoDto)
-  repCompanyInfo?: RepCompanyInfoDto;
-
   @ApiProperty({ type: LegalAndAltNamesDto })
   @ValidateNested({ each: true })
   @Type(() => CreateLegalAndAltNamesDto)
@@ -264,12 +230,6 @@ export class CreateCompanyFormDto {
 }
 
 export class CSVCompanyFormDto {
-  @ApiProperty({ type: RepCompanyInfoDto, required: false })
-  @IsOptional()
-  @ValidateNested({ each: true })
-  @Type(() => RepCompanyInfoDto)
-  repCompanyInfo?: RepCompanyInfoDto;
-
   @ApiProperty({ type: LegalAndAltNamesDto })
   @ValidateNested({ each: true })
   @Type(() => LegalAndAltNamesDto)

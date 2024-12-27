@@ -1,12 +1,6 @@
 import { Prop, Schema } from '@nestjs/mongoose';
 
 @Schema({ _id: false })
-class FinCENID {
-  @Prop({ maxlength: 12 })
-  finCENID: string;
-}
-
-@Schema({ _id: false })
 class BeneficialOwner {
   @Prop({ required: false })
   isParentOrGuard?: boolean;
@@ -83,29 +77,11 @@ class IdentificationDetails {
 
 @Schema({ _id: false })
 export class OwnerCSV {
-  @Prop({ required: false, type: FinCENID })
-  finCENID: FinCENID;
-
   @Prop({ required: false, type: BeneficialOwner })
   beneficialOwner?: BeneficialOwner;
 
   @Prop({ required: false, type: ExemptEntity })
   exemptEntity?: ExemptEntity;
-
-  @Prop({ required: false, type: PersonalInfo })
-  personalInfo?: PersonalInfo;
-
-  @Prop({ required: false, type: Address })
-  address?: Address;
-
-  @Prop({ required: false, type: IdentificationDetails })
-  identificationDetails?: IdentificationDetails;
-}
-
-@Schema({ _id: false })
-export class ApplicantCSV {
-  @Prop({ required: false, type: FinCENID })
-  finCENID: FinCENID;
 
   @Prop({ required: false, type: PersonalInfo })
   personalInfo?: PersonalInfo;

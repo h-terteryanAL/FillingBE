@@ -12,25 +12,15 @@ export class CsvDataService {
 
   async create(data: any) {
     const owners = [];
-    const applicants = [];
-    if (data.participants.length) {
-      data.participants.forEach((participant: any) => {
-        if (participant.isApplicant) {
-          delete participant.isApplicant;
-          applicants.push(participant);
-        } else {
-          delete participant.isApplicant;
-          owners.push(participant);
-        }
-      });
-    }
-
     const filteredData: {
       user?: any;
       owners?: any[];
-      applicants?: any[];
       BOIRExpTime?: any;
-    } = { owners, applicants };
+    } = { owners };
+    if (data.owner) {
+      filteredData.owners = data.owners;
+    }
+
     if (data.user) {
       filteredData.user = data.user;
     }

@@ -24,28 +24,6 @@ export enum UserData {
   'User LastName' = 'lastName',
 }
 
-export enum ApplicantData {
-  'Applicant FinCEN ID' = 'finCENID.finCENID',
-  'Applicant Last or Legal Name' = 'personalInfo.lastOrLegalName',
-  'Applicant First Name' = 'personalInfo.firstName',
-  'Applicant Middle Name' = 'personalInfo.middleName',
-  'Applicant Suffix' = 'personalInfo.suffix',
-  'Applicant Date of Birth' = 'personalInfo.dateOfBirth',
-  'Applicant Address Type' = 'address.type',
-  'Applicant Address' = 'address.address',
-  'Applicant City' = 'address.city',
-  'Applicant Country/Jurisdiction' = 'address.countryOrJurisdiction',
-  'Applicant State' = 'address.state',
-  'Applicant Postal Code' = 'address.postalCode',
-  'Applicant Document Type' = 'identificationDetails.docType',
-  'Applicant Document Number' = 'identificationDetails.docNumber',
-  'Applicant Document Country/Jurisdiction' = 'identificationDetails.countryOrJurisdiction',
-  'Applicant Document State' = 'identificationDetails.state',
-  'Applicant Local or Tribal' = 'identificationDetails.localOrTribal',
-  'Applicant Other Local or Tribal Description' = 'identificationDetails.otherLocalOrTribalDesc',
-  'Applicant Document Image' = 'identificationDetails.docImg',
-}
-
 export enum OwnerData {
   'Owner Is Parent or Guardian' = 'beneficialOwner.isParentOrGuard',
   'Owner Is Exempt Entity' = 'exemptEntity.isExemptEntity',
