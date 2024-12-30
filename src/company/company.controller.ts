@@ -137,19 +137,26 @@ export class CompanyController {
     }
   }
 
-  @Post()
+  @Post('/:userId')
   @UseGuards(AccessTokenGuard)
   @ApiBearerAuth()
   @ApiOkResponse({
     type: ResponseMessageDto,
     description: companyResponseMsgs.companyCreated,
   })
+  @ApiParam({
+    name: 'userId',
+    required: true,
+  })
   @ApiBody({ type: CreateCompanyFormDto })
   @ApiForbiddenResponse({ description: companyResponseMsgs.dontHavePermission })
   @ApiOperation({ summary: 'Create new company' })
   @ApiConflictResponse({ description: companyResponseMsgs.companyWasCreated })
-  async createNewCompany(@Body() body: CreateCompanyFormDto) {
-    return this.companyService.createNewCompany(body);
+  async createNewCompany(
+    @Body() body: CreateCompanyFormDto,
+    @Param('userId') userId: string,
+  ) {
+    return this.companyService.createNewCompany(body, userId);
   }
 
   @Post('csv')

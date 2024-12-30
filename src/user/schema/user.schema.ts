@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, ObjectId } from 'mongoose';
 
 export type UserDocument = User & Document;
 
@@ -25,8 +25,8 @@ export class User {
   @Prop({ default: null })
   oneTimeExpiration: string | null;
 
-  @Prop()
-  companies: [];
+  @Prop({ ref: 'Company', default: [] }) // Reference to Company model
+  companies: ObjectId[];
 
   @Prop({ default: '' })
   refreshToken: string;

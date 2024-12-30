@@ -17,7 +17,7 @@ import {
 export function ValidateCompanyTribalData(
   validationOptions?: ValidationOptions,
 ) {
-  return function (object: Object, propertyName: string) {
+  return function (object: object, propertyName: string) {
     registerDecorator({
       name: 'ValidateCompanyTribalData',
       target: object.constructor,
@@ -46,7 +46,7 @@ export function ValidateCompanyTribalData(
 export function StateOfFormationValidator(
   validationOptions?: ValidationOptions,
 ) {
-  return function (object: Object, propertyName: string) {
+  return function (object: object, propertyName: string) {
     registerDecorator({
       name: 'StateOfFormationValidator',
       target: object.constructor,
@@ -83,7 +83,7 @@ export function StateOfFormationValidator(
 }
 
 export function IsEmptyIfNotOtherTribal(validationOptions?: ValidationOptions) {
-  return function (object: Object, propertyName: string) {
+  return function (object: object, propertyName: string) {
     registerDecorator({
       name: 'IsEmptyIfNotOtherTribal',
       target: object.constructor,
@@ -134,7 +134,7 @@ export class CountryOrJurisdictionValidator
 export function IsCountryOrJurisdictionValid(
   validationOptions?: ValidationOptions,
 ) {
-  return function (object: Object, propertyName: string) {
+  return function (object: object, propertyName: string) {
     registerDecorator({
       target: object.constructor,
       propertyName: propertyName,
@@ -179,7 +179,7 @@ class StateValidator implements ValidatorConstraintInterface {
 }
 
 export function IsStateValid(validationOptions?: ValidationOptions) {
-  return function (object: Object, propertyName: string) {
+  return function (object: object, propertyName: string) {
     registerDecorator({
       target: object.constructor,
       propertyName: propertyName,
@@ -210,7 +210,7 @@ class LocalOrTribalValidator implements ValidatorConstraintInterface {
 }
 
 export function IsLocalOrTribalValid(validationOptions?: ValidationOptions) {
-  return function (object: Object, propertyName: string) {
+  return function (object: object, propertyName: string) {
     registerDecorator({
       target: object.constructor,
       propertyName: propertyName,
@@ -250,7 +250,7 @@ export class OtherLocalOrTribalDescValidator
 export function IsOtherLocalOrTribalDescValid(
   validationOptions?: ValidationOptions,
 ) {
-  return function (object: Object, propertyName: string) {
+  return function (object: object, propertyName: string) {
     registerDecorator({
       target: object.constructor,
       propertyName: propertyName,
@@ -262,7 +262,7 @@ export function IsOtherLocalOrTribalDescValid(
 }
 
 export function CountryStateValidator(validationOptions?: ValidationOptions) {
-  return function (object: Object, propertyName: string) {
+  return function (object: object, propertyName: string) {
     registerDecorator({
       name: 'StateValidator',
       target: object.constructor,
@@ -296,6 +296,58 @@ export function CountryStateValidator(validationOptions?: ValidationOptions) {
             return `stateOfFormation must match the country value when country is one of the USCountries.`;
           }
           return `stateOfFormation must be empty when the country is foreign.`;
+        },
+      },
+    });
+  };
+}
+
+export function PostalCodeValidator(validationOptions?: ValidationOptions) {
+  return function (object: object, propertyName: string) {
+    registerDecorator({
+      name: 'PostalCodeValidator',
+      target: object.constructor,
+      propertyName: propertyName,
+      options: validationOptions,
+      validator: {
+        validate(value: any, args: ValidationArguments) {
+          const object = args.object as any;
+          const { countryOrJurisdiction } = object;
+
+          if (
+            countryOrJurisdiction === AllCountryEnum.US ||
+            countriesWithStates.includes(countryOrJurisdiction)
+          ) {
+            const usRegex = /^\d{5}(\d{4})?$/;
+            if (!usRegex.test(value)) {
+              return false;
+            }
+
+            if (/^(\d)\1*$/.test(value) || value === '123456789') {
+              return false;
+            }
+          } else {
+            const genericRegex = /^[a-zA-Z0-9]{1,9}$/; // 1-9 alphanumeric characters
+            if (!genericRegex.test(value)) {
+              return false;
+            }
+          }
+
+          return true;
+        },
+        defaultMessage(args: ValidationArguments) {
+          const objects = args.object as any;
+          const { countryOrJurisdiction } = objects;
+
+          if (!countryOrJurisdiction) {
+            return `Postal code validation skipped due to missing country or jurisdiction.`;
+          }
+
+          if (countryOrJurisdiction === 'United States of America') {
+            return `Postal code must be valid for the United States (e.g., 12345 or 654987321).`;
+          }
+
+          return `Postal code must be valid for the selected country or jurisdiction (1-9 alphanumeric characters).`;
         },
       },
     });

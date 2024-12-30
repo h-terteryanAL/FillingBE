@@ -40,7 +40,13 @@ export class UserService {
   }
 
   async getUserById(id: string): Promise<User> {
-    return this.userModel.findById(id).exec();
+    const user = await this.userModel.findById(id);
+
+    if (!user) {
+      throw new NotFoundException(userResponseMsgs.notFound);
+    }
+
+    return user;
   }
 
   async getUserByEmail(email: string): Promise<User | null> {
@@ -78,13 +84,14 @@ export class UserService {
   }
 
   async addCompaniesToUser(userId: string, companyIds: string[]) {
+    const objectIds = companyIds.map((id) => new Types.ObjectId(id)); // Convert strings to ObjectId
+
     await this.userModel.findOneAndUpdate(
       { _id: userId },
-      { $addToSet: { companies: { $each: companyIds } } },
+      { $addToSet: { companies: { $each: objectIds } } },
       { new: true },
     );
   }
-
   async getUserCompanyData(userId: string) {
     const user = await this.userModel
       .findById(userId, {
@@ -97,7 +104,9 @@ export class UserService {
       throw new NotFoundException(userResponseMsgs.notFound);
     }
 
-    return await this.companyService.getCompaniesByIds(user.companies);
+    return await this.companyService.getCompaniesByIds(
+      user.companies as any as string[],
+    );
   }
 
   async changeRefreshToken(userId: string, refreshToken: string) {

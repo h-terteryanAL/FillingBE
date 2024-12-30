@@ -10,6 +10,7 @@ import {
   IsLocalOrTribalValid,
   IsOtherLocalOrTribalDescValid,
   IsStateValid,
+  PostalCodeValidator,
 } from '@/utils/validateCountry.util';
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
@@ -21,7 +22,6 @@ import {
   IsOptional,
   IsString,
   MaxLength,
-  MinLength,
   ValidateNested,
 } from 'class-validator';
 
@@ -123,9 +123,7 @@ class OwnerAddressDto {
 
   @ApiProperty({ required: false })
   @IsOptional()
-  @IsString()
-  @MinLength(3)
-  @MaxLength(9)
+  @PostalCodeValidator()
   postalCode?: string;
 }
 

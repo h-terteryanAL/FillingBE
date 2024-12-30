@@ -135,21 +135,6 @@ class CompanyAddressDto {
   isVerified?: boolean;
 }
 
-class CreateLegalAndAltNamesDto {
-  @ApiProperty({ required: true })
-  @IsString()
-  @MaxLength(150)
-  legalName: string;
-
-  @ApiProperty({ required: false, type: [String] })
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  @MaxLength(150, { each: true })
-  @Type(() => String)
-  altName?: string[];
-}
-
 class TaxInformation {
   @ApiProperty({ required: true })
   @IsEnum(IdentificationTypesEnum)
@@ -174,6 +159,7 @@ class TaxInformation {
   @IsBoolean()
   isVerified?: boolean;
 }
+
 export class ChangeCompanyFormDto {
   @ApiProperty({ type: LegalAndAltNamesDto, required: false })
   @IsOptional()
@@ -201,32 +187,20 @@ export class ChangeCompanyFormDto {
 }
 
 export class CreateCompanyFormDto {
-  @ApiProperty({ type: LegalAndAltNamesDto })
-  @ValidateNested({ each: true })
-  @Type(() => CreateLegalAndAltNamesDto)
-  names: CreateLegalAndAltNamesDto;
+  @ApiProperty({ required: true })
+  @IsString()
+  @MaxLength(150)
+  legalName: string;
 
-  @ApiProperty({ type: JurisdictionOfFormationDto, required: false })
-  @IsOptional()
-  @ValidateNested({ each: true })
-  @Type(() => JurisdictionOfFormationDto)
-  formationJurisdiction?: JurisdictionOfFormationDto;
+  @ApiProperty({ required: true })
+  @IsEnum(IdentificationTypesEnum)
+  taxIdType: IdentificationTypesEnum;
 
-  @ApiProperty({ type: TaxInformation })
-  @ValidateNested({ each: true })
-  @Type(() => TaxInformation)
-  taxInfo: TaxInformation;
-
-  @ApiProperty({ type: CompanyAddressDto, required: false })
-  @IsOptional()
-  @ValidateNested({ each: true })
-  @Type(() => CompanyAddressDto)
-  address?: CompanyAddressDto;
-
-  @ApiProperty({ type: Boolean, required: false })
-  @IsOptional()
-  @IsBoolean()
-  isExistingCompany: boolean;
+  @ApiProperty({ required: true })
+  @IsString()
+  @ValidateIf((o) => o.taxIdType)
+  @IsTaxIdValid()
+  taxIdNumber: string;
 }
 
 export class CSVCompanyFormDto {

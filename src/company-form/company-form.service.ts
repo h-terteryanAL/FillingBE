@@ -163,10 +163,12 @@ export class CompanyFormService {
     taxNumber: string,
     taxType: string,
   ): Promise<CompanyFormDocument> | null {
-    return this.companyFormModel.findOne({
+    const companyForm = await this.companyFormModel.findOne({
       'taxInfo.taxIdNumber': taxNumber,
       'taxInfo.taxIdType': taxType,
     });
+
+    return companyForm;
   }
 
   async getCompanyFormMissingFields(companyForm: CompanyFormDocument) {
